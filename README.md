@@ -307,10 +307,12 @@ Iniciar el MySQL Cluster
 
 ##Clúster HA WEB Y FTP
 Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
+
 - Servidor1: 10.10.10.195 /26
 - Servidor2: 10.10.10.196 /26
 
 Para crear el clúster se hizo con varios servicios, uno el corosync que sirve para sincronizar las maquinas, el otro era pacemaker que era el que se encargaba de si una maquina estaba activa la instalación de estos servicios se hicieron en Ubuntu server 14.04, con la siguiente línea se instala:
+
 - sudo apt-get update
 - sudo apt-get upgrade
 - sudo apt-get install pacemaker corosync
@@ -364,7 +366,7 @@ sudo fdisk /dev/sdb (sbd es el disco que se agregó)
 Esto se hace también en el servidor2 una vez creado las particiones sigue, instalar DRBD para instalar DRBD se instala con la siguiente línea, estese tiene que instalar en ambos servidores:
 
 - sudo apt-get install drbd8-utils
-- 
+
 Una vez instalado se procede a crear un archivo que es /etc/drbd.conf que va a contener la siguiente información
 
 Resource disk1 {
@@ -390,7 +392,7 @@ Después de crear los meta datos sigue iniciar los servicios, en las dos máquin
 
 Para ver que los dos se sincronización exitosamente, se procede a verificar que los dos están conectados con el siguiente comando:
 
--sudo drbd-overview
+- sudo drbd-overview
 
 Y el resultado tendría que ser el siguiente:
 
@@ -412,9 +414,12 @@ Una vez que los datos ya se actualizaron lo que se hace es establecer un nodo co
 con esto ya tenemos el sistema de archivos clusterizados.
 
 ###Configuración Pacemaker
+
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
-###IPVirtual: Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
+###IPVirtual 
+
+Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
 - crm configure primitive IPVirtual ocf:heartbeat:IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
