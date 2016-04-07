@@ -13,29 +13,19 @@ Proyecto No. 1
 Servicio de hosting y redundancia.
 
 
-Miguel Orlando Diaz Muñoz 15227-12
-Kevin Antonio Velásquez Aguilar 16736-11
-Pablo Andrés López Velásquez 16293-11
-Luis Antonio Makepeace de León 15676-12
-Cristian Daniel Flores Puac 15030-11
-Abner Méndez Gómez 22262-10
-Diseño de la red.
- 
+- Miguel Orlando Diaz Muñoz 15227-12
+- Kevin Antonio Velásquez Aguilar 16736-11
+- Pablo Andrés López Velásquez 16293-11
+- Luis Antonio Makepeace de León 15676-12
+- Cristian Daniel Flores Puac 15030-11
+- Abner Méndez Gómez 22262-10
 
 
+#Diseño de la red.
+![Alt text](https://github.com/panlopezv/ProyectoIRedesII/blob/master/red.png?raw=true"Optional title")
 
 
-
-
-
-
-
-
-
-
-
-
-Ruto dinámico en Vyatta(RIP).
+#Ruto dinámico en Vyatta(RIP).
 Al tener instalado el sistema es necesario i con el Usuario por defecto que ya viene con el sistema.  
 -	Login:”vyos”
 -	 password: ”vyos”
@@ -77,94 +67,94 @@ apt-get install quagga
 
 2. Configuramos los demonios para que active zebra y ripd con el siguente comando:
     
-nano /etc/quagga/daemons  y cambiamos a yes:
+    nano /etc/quagga/daemons  y cambiamos a yes:
 
-zebra=yes
-bgpd=no
-ospfd=no
-ospf6d=no
-ripd=yes
-ripngd=no
+    zebra=yes
+    bgpd=no
+    ospfd=no
+    ospf6d=no
+    ripd=yes
+    ripngd=no
 
 
 
 3. Después hay que entrar a la ruta cd /usr/share/doc/quagga/examples/ y copiar los archivos zebra y ripd a la ruta /etc/quagga, quedaría así:
 
-cp /usr/share/doc/quagga/examples/zebra.conf.sample /etc/quagga/zebra.conf
-cp /usr/share/doc/quagga/examples/ripd.conf.sample /etc/quagga/ripd.conf
+    cp /usr/share/doc/quagga/examples/zebra.conf.sample /etc/quagga/zebra.conf
+    cp /usr/share/doc/quagga/examples/ripd.conf.sample /etc/quagga/ripd.conf
 
 4. Reiniciamos el servicio de quagga:
 
-sudo /etc/init.d/quagga
+    sudo /etc/init.d/quagga
 5. Ahora podremos acceder por separado con una interfaz interactiva a cada uno de los demonios. Para acceder a Zebra (Password por defecto zebra):
 
 telnet localhost 2601 o zebra
-Password: zebra
+    Password: zebra
 
-Router>enable
-Router#conf t
-Router(config)#interface eth0
-Router(config-if)#ip address 200.100.100.1/24
-Router(config-if)#no shutdown
-Router(config-if)#exit
-Router(config)# exit
-Router# write
-Configuration saved to /etc/quagga/router.conf
-telnet localhost 2602 o ripd
-Password: zebra
-ripd> enable
-ripd# configure terminal
-ripd(config)# router rip
-ripd(config-router)# network 200.100.100.0/24
-ripd(config-router)# network 192.168.1.0/24
-ripd(config-router)# network 192.168.2.0/24
-ripd(config-router)# network 192.168.3.0/24
-ripd(config-router)# exit
-ripd(config)# exit
-ripd# write
-Configuration saved to /etc/quagga/ripd.conf
+    Router>enable
+    Router#conf t
+    Router(config)#interface eth0
+    Router(config-if)#ip address 200.100.100.1/24
+    Router(config-if)#no shutdown
+    Router(config-if)#exit
+    Router(config)# exit
+    Router# write
+    Configuration saved to /etc/quagga/router.conf
+    telnet localhost 2602 o ripd
+    Password: zebra
+    ripd> enable
+    ripd# configure terminal
+    ripd(config)# router rip
+    ripd(config-router)# network 200.100.100.0/24
+    ripd(config-router)# network 192.168.1.0/24
+    ripd(config-router)# network 192.168.2.0/24
+    ripd(config-router)# network 192.168.3.0/24
+    ripd(config-router)# exit
+    ripd(config)# exit
+    ripd# write
+    Configuration saved to /etc/quagga/ripd.conf
 
 6. Después de configurar todo lo de quagga procedemos a configurar las tarjetas de red. Para eso editamos el archivo:
-nano /etc/network/interfaces
-auto eth0
-iface eth0 inet static
-address 200.100.100.1
-netmask 255.255.255.0
-network 200.100.100.0
-broadcast 200.100.100.255
+    nano /etc/network/interfaces
+    auto eth0
+    iface eth0 inet static
+    address 200.100.100.1
+    netmask 255.255.255.0
+    network 200.100.100.0
+    broadcast 200.100.100.255
 
-auto eth1
-iface eth1 inet static
+    auto eth1
+    iface eth1 inet static
 
-auto eth1.101
-iface eth1.101 inet static
-address 192.168.1.1
-netmask 255.255.255.0
-network 192.168.1.0
-broadcast 192.168.1.255
-auto eth1.102
-iface eth1.102 inet static
-address 192.168.2.1
-netmask 255.255.255.0
-network 192.168.2.0
-broadcast 192.168.2.255
-auto eth1.103
-iface eth1.103 inet static
-address 192.168.3.1
-netmask 255.255.255.0
-network 192.168.3.0
-broadcast 192.168.3.255
-Luego le damos "control mas o" y enter y después "control mas x" para salir.
+    auto eth1.101
+    iface eth1.101 inet static
+    address 192.168.1.1
+    netmask 255.255.255.0
+    network 192.168.1.0
+    broadcast 192.168.1.255
+    auto eth1.102
+    iface eth1.102 inet static
+    address 192.168.2.1
+    netmask 255.255.255.0
+    network 192.168.2.0
+    broadcast 192.168.2.255
+    auto eth1.103
+    iface eth1.103 inet static
+    address 192.168.3.1
+    netmask 255.255.255.0
+    network 192.168.3.0
+    broadcast 192.168.3.255
+    Luego le damos "control mas o" y enter y después "control mas x" para salir.
 
 7. Después de hacer estas configuraciones hay que restaurar el servicio de red con el siguiente comando:
-sudo /etc/init.d/networking restart
+    sudo /etc/init.d/networking restart
 
 8. Después hay que activar el enrutamiento en GNU/Linux con el siguiente comando:
 
 echo "1" > /proc/sys/net/ipv4/ip_forward
 y para que no se borre despues de reiniciar el sistema utilizamos la siguiente linea:
 
-echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 
 
 
