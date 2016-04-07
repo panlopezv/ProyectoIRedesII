@@ -305,14 +305,14 @@ Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecu
 el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
 Iniciar el MySQL Cluster
 
-#Clúster HA WEB Y FTP
+##Clúster HA WEB Y FTP
 Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
--Servidor1: 10.10.10.195 /26
--Servidor2: 10.10.10.196 /26
+  Servidor1: 10.10.10.195 /26
+  Servidor2: 10.10.10.196 /26
 Para crear el clúster se hizo con varios servicios, uno el corosync que sirve para sincronizar las maquinas, el otro era pacemaker que era el que se encargaba de si una maquina estaba activa la instalación de estos servicios se hicieron en Ubuntu server 14.04, con la siguiente línea se instala:
--sudo apt-get update
--sudo apt-get upgrade
--sudo apt-get install pacemaker corosync
+  sudo apt-get update
+  sudo apt-get upgrade
+  sudo apt-get install pacemaker corosync
 Una vez instalado los servicios se procede a generar una key para que los nodos puedan ser capaces de comunicarse unos dentro de otros, ya que esa key sirve para autentificar los paquetes enviados, para generar la key se ingresa:
 -sudo corosync-keygen
 Después de ingresar el comando sale una pantalla en la que hay estar tecleando varias teclas o mover el mouse, esto se hace para ser capaz de crear entropía, para tener suficientes bits aleatorios para generar la clave.
