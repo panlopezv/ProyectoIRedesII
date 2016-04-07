@@ -18,14 +18,15 @@ Servicio de hosting y redundancia.
 - Pablo Andrés López Velásquez 16293-11
 - Luis Antonio Makepeace de León 15676-12
 - Cristian Daniel Flores Puac 15030-11
+- Josue Alexander Gomez Lopez 1656411
 - Abner Méndez Gómez 22262-10
 
 
-#Diseño de la red.
+##Diseño de la red.
 ![Alt text](https://github.com/panlopezv/ProyectoIRedesII/blob/master/red.png?raw=true"Optional title")
 
 
-#Ruto dinámico en Vyatta(RIP).
+##Ruto dinámico en Vyatta(RIP).
 Al tener instalado el sistema es necesario i con el Usuario por defecto que ya viene con el sistema.  
 -	Login:”vyos”
 -	 password: ”vyos”
@@ -39,11 +40,9 @@ Luego de que miramos que nuestras interfaces están bien, entramos a las configu
 -	vyatta@R1#  configure
 -	vyatta@R1#  set interfaces ethernet eth2 address 10.10.10.66/26
 -	vyatta@R1#  commit (este comando siempre debe de ejecutarse para que los cambios sean aplicados permanentemente).
--	
-De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando
- set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos
+De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos
 
-Configurar Rip.
+###Configurar Rip.
 -	vyatta@R0# configure
 -	vyatta@R0# set protocols rip network 10.10.10.0/24
 
@@ -86,11 +85,12 @@ apt-get install quagga
 4. Reiniciamos el servicio de quagga:
 
     sudo /etc/init.d/quagga
+    
 5. Ahora podremos acceder por separado con una interfaz interactiva a cada uno de los demonios. Para acceder a Zebra (Password por defecto zebra):
 
-telnet localhost 2601 o zebra
-    Password: zebra
+    Router>enabletelnet localhost 2601 o zebra
 
+    Password: zebra
     Router>enable
     Router#conf t
     Router(config)#interface eth0
@@ -115,6 +115,8 @@ telnet localhost 2601 o zebra
     Configuration saved to /etc/quagga/ripd.conf
 
 6. Después de configurar todo lo de quagga procedemos a configurar las tarjetas de red. Para eso editamos el archivo:
+
+
     nano /etc/network/interfaces
     auto eth0
     iface eth0 inet static
@@ -122,10 +124,8 @@ telnet localhost 2601 o zebra
     netmask 255.255.255.0
     network 200.100.100.0
     broadcast 200.100.100.255
-
     auto eth1
     iface eth1 inet static
-
     auto eth1.101
     iface eth1.101 inet static
     address 192.168.1.1
@@ -156,15 +156,7 @@ y para que no se borre despues de reiniciar el sistema utilizamos la siguiente l
 
     echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 
-
-
-
-
-
-
-
-
-#Servidor FTP
+##Servidor FTP
 
 FTP se utiliza para transferir archivos desde un host a otro a través de la red TCP. Hay 3 paquetes de servidor FTP populares disponibles PureFTPd, vsftpd y Proftpd. Aquí he utilizado Vsftpd que es la vulnerabilidad de peso ligero y menos. 
 
@@ -173,7 +165,7 @@ Paso 1. Actualizar repositorios.
     sudo apt-get update
 
 Paso 2. Instalar paquete vsftpd con el comando a continuación:
-    
+
     sudo apt-get install vsftpd
 
 Paso 3. Despues de la instalacion abrir archivo /etc/vsftpd.conf y descomentar las lineas 29 y 30:
@@ -186,9 +178,9 @@ Paso 3. Despues de la instalacion abrir archivo /etc/vsftpd.conf y descomentar l
     chroot_local_users=YES
 
     Añadir la siguiente linea al final.
-    
-    allow_writeable_chroot=YES
 
+    allow_writeable_chroot=YES
+    
     Tambien las siguientes lineas para activar el modo pasivo.
 
     pasv_enable=YES
@@ -196,55 +188,54 @@ Paso 3. Despues de la instalacion abrir archivo /etc/vsftpd.conf y descomentar l
     pasv_max_port=40100
 
 Paso 4. Reiniciamos vsftpd servicio utilizando el comando a continuación,
-    
+
     sudo service vsftpd restart
 
 Paso 5. Ahora el servidor FTP estara en el puerto 21. Se debe crear usuario con el siguiente comando  para luego impedir el acceso a la carpetas del usuario FTP.
 
-
     sudo  useradd -d /home/pedro -m -s /usr/sbin/nologin
 
-De esta manera habremos creado su carpeta home aparte del usuario. Tan solo nos queda     establecer su contraseña con el comando passwd:
-    
+De esta manera habremos creado su carpeta home aparte del usuario. Tan solo nos queda     establecer su contraseña con el comando
+
     sudo passwd nombre
 
     Entonces el sistema nos preguntara dos veces la contraseña que queremos  asignar a nombre 
     El comando use radd permite crear muchos usuarios automaticamente mediante archivos de     comandos (scripts)
 
 
-#Servidor Cluster MySQL
+##Servidor Cluster MySQL
 Requerimientos 
-•	MySQL Cluster 
-•	4 máquinas (virtuales o físicas)
+-	MySQL Cluster 
+-	4 máquinas (virtuales o físicas)
 Las cuatro máquinas se distribuirán de la siguiente forma
-•	1 nodo administrador  ip 10.10.10.96/26
-•	2 nodos de datos  ip’s 10.10.10.97/26 y 10.10.10.98/26
-•	1 nodo SQL 10.10.10.99/26
+-	1 nodo administrador  ip 10.10.10.96/26
+-	2 nodos de datos  ip’s 10.10.10.97/26 y 10.10.10.98/26
+-	1 nodo SQL 10.10.10.99/26
 Para la configuración del nodo administrador
 Descomprimir mysql-cluster-gpl.tar.gz y mover ndb_mgm y ndb_mgmd al directorio /usr/local/bin:
-•	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
-•	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
-•	cp bin/ndb_mgm* /usr/local/bin
+-	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
+-	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
+-	cp bin/ndb_mgm* /usr/local/bin
 y hacerlos ejecutables
-•	cd /usr/local/bin
-•	chmod +x ndb_mgm*
+-	cd /usr/local/bin
+-	chmod +x ndb_mgm*
 crear el directorio y archivo de configuración
-•	mkdir /var/lib/mysql-cluster
-•	cd /var/lib/mysql-cluster
-•	gedit config.ini
+-	mkdir /var/lib/mysql-cluster
+-	cd /var/lib/mysql-cluster
+-	gedit config.ini
 el archivo de configuración debe contener lo siguiente:
 [ndbd default]
 Options affecting ndbd processes on all data nodes:
-NoOfReplicas=2    # Number of replicas
-DataMemory=80M    # How much memory to allocate for data storage
-IndexMemory=18M   # How much memory to allocate for index storage
-                  # For DataMemory and IndexMemory, we have used the
-                  # default values. Since the "world" database takes up
-                  # only about 500KB, this should be more than enough for
-                  # this example Cluster setup.
+NoOfReplicas=2     Number of replicas
+DataMemory=80M     How much memory to allocate for data storage
+IndexMemory=18M    How much memory to allocate for index storage
+                   For DataMemory and IndexMemory, we have used the
+                   default values. Since the "world" database takes up
+                   only about 500KB, this should be more than enough for
+                   this example Cluster setup.
 
 [tcp default]
-# TCP/IP options:
+TCP/IP options:
 portnumber=2202   # This the default; however, you can use any
                   # port that is free for all the hosts in the cluster
                   # Note: It is recommended that you do not specify the port
@@ -276,15 +267,15 @@ hostname=10.10.10.99          # Hostname or IP address
  
 Configuración del nodo de datos (la misma configuración para los dos nodos)
 Descomprimir mysql-cluster-gpl.tar.gz y mover ndbd and ndbmtd al directorio /usr/local/bin:
-•	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
-•	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
-•	cp bin/ndbd /usr/local/bin
+-	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
+-	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
+-	cp bin/ndbd /usr/local/bin
 y hacerlos ejecutables
-•	cd /usr/local/bin
-•	chmod +x ndb*
+-	cd /usr/local/bin
+-	chmod +x ndb*
 crear el directorio /usr/local/mysql/data
 crear un archivo de configuración
-•	gedit /etc/my.cnf
+-	gedit /etc/my.cnf
 debe contener lo siguiente
 [mysqld]
  Options for mysqld process:
@@ -295,21 +286,21 @@ ndbcluster                      # run NDB storage engine
 ndb-connectstring=192.168.0.102  # location of management server 
 configuración del nodo SQL
 comprobar si en los archivos /etc/passwd  y  /etc/group  para verificar si ya existe un grupo y usuario de sistema llamados mysql. Si no es así, crear un nuevo  mysql  grupo de usuarios, y luego añadir un  mysql  usuario a este grupo:
-•	groupadd mysql
-•	useradd -g mysql mysql
+-	groupadd mysql
+-	useradd -g mysql mysql
 Descomprimir el archivo, y crear un enlace simbólico llamado  mysql  al directorio de mysql.
-•	tar -C /usr/local mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
-•	ln -s /usr/local/mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64 /usr/local/mysql
+-	tar -C /usr/local mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
+-	ln -s /usr/local/mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64 /usr/local/mysql
 pasar al directorio de mysql y ejecutar el script proporcionado para la creación de las bases de datos del sistema:
-•	cd /usr/local/mysql
-•	scripts/mysql_install_db --user=mysql
+-	cd /usr/local/mysql
+-	scripts/mysql_install_db --user=mysql
 Establecer los permisos necesarios para el servidor y el directorio de datos de MySQL
-•	chown -R root .
-•	chown -R mysql data
-•	chgrp -R mysql .
+-	chown -R root .
+-	chown -R mysql data
+-	chgrp -R mysql .
 Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecutable, y configurarlo para comenzar cuando el sistema operativo inicie.
-•	cp support-files/mysql.server /etc/init.d
-•	chmod +x /etc/init.d/mysql.server
-•	update-rc.d mysql.server defaults
+-	cp support-files/mysql.server /etc/init.d
+-	chmod +x /etc/init.d/mysql.server
+-	update-rc.d mysql.server defaults
 el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
 Iniciar el MySQL Cluster
