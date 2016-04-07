@@ -305,7 +305,7 @@ Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecu
 el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
 Iniciar el MySQL Cluster
 
-Clúster HA WEB Y FTP
+#Clúster HA WEB Y FTP
 Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
 -Servidor1: 10.10.10.195 /26
 -Servidor2: 10.10.10.196 /26
