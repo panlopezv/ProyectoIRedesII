@@ -309,18 +309,23 @@ Iniciar el MySQL Cluster
 Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
 - Servidor1: 10.10.10.195 /26
 - Servidor2: 10.10.10.196 /26
+
 Para crear el clúster se hizo con varios servicios, uno el corosync que sirve para sincronizar las maquinas, el otro era pacemaker que era el que se encargaba de si una maquina estaba activa la instalación de estos servicios se hicieron en Ubuntu server 14.04, con la siguiente línea se instala:
-  sudo apt-get update
-  sudo apt-get upgrade
-  sudo apt-get install pacemaker corosync
+- sudo apt-get update
+- sudo apt-get upgrade
+- sudo apt-get install pacemaker corosync
+
 Una vez instalado los servicios se procede a generar una key para que los nodos puedan ser capaces de comunicarse unos dentro de otros, ya que esa key sirve para autentificar los paquetes enviados, para generar la key se ingresa:
--sudo corosync-keygen
+- sudo corosync-keygen
+
 Después de ingresar el comando sale una pantalla en la que hay estar tecleando varias teclas o mover el mouse, esto se hace para ser capaz de crear entropía, para tener suficientes bits aleatorios para generar la clave.
+
 Una vez generada la clave se procede a copiar el archivo al otro servidor para poder copiarlo de manera fácil se va hacer uso del servicio ssh para poder enviar el archivo, con el siguiente comando se envía el archivo:
 
--sudo scp /etc/corosync/authkey root@servidor2:/etc/corosync 
+- sudo scp /etc/corosync/authkey root@servidor2:/etc/corosync 
 
 Una vez que genere la clave, se tiene que modificar el archivo de corosyncque se encuentra en /etc/corosync/corosync.conf y se escribe las siguientes líneas:
+
 
 totem{
  version:2 
@@ -341,23 +346,25 @@ two_node:1 }
 
 Esto se tiene que hacer tanto en el servidor1 como en el servidor2, una vez hecho esto, se modifica otra línea para que comience el servicio cuando se inicia el servidor, el archivo que se modifica se encuentra en etc/default/corosync y se agrega “yes” a la línea que tiene: 
 
--START=yes
+- START=yes
 
 Después de hacer eso, se inicia el servicio de corosyncy se reiniciar el servicio pacemaker
 
--sudo service corosync start 
--sudo service pacemaker start 
+- sudo service corosync start 
+- sudo service pacemaker start 
 
 Sistema de archivos clusterizados
 Para el uso de sistema de archivo para clúster se usó DRBD un programa que me permite compartir información entre las dos máquinas, su funcionamiento es como el RAID 1 pero en red, lo que hace es replicar la información de un disco a otro, entonces se comienza creando las particiones correspondiente que se van a usar para el clúster ,en este caso vamos a usar un disco que agregamos y vamos a crear la partición en este disco, para crear la particiones: 
 sudo fdisk /dev/sdb (sbd es el disco que se agregó)
-n -> nueva partición
-p ->primario 1-> partición #1
-enter-> si se presiona enter para poner el valor default
-enter-> se presiona enter para ocupar todo el espacio
-w -> para escribir los cambios
+- n -> nueva partición
+- p ->primario 1-> partición #1
+- enter-> si se presiona enter para poner el valor default
+- enter-> se presiona enter para ocupar todo el espacio
+- w -> para escribir los cambios
 Esto se hace también en el servidor2 una vez creado las particiones sigue, instalar DRBD para instalar DRBD se instala con la siguiente línea, estese tiene que instalar en ambos servidores:
-sudo apt-get install drbd8-utils
+
+- sudo apt-get install drbd8-utils
+- 
 Una vez instalado se procede a crear un archivo que es /etc/drbd.conf que va a contener la siguiente información
 
 Resource disk1 {
@@ -374,40 +381,56 @@ address10.10.10.196:7788;
 }
 
 Donde disk1 va hacer el nombre del recurso, “/dev/drbd0” es la unidad que van a compartir los dos servidores y “/dev/sdb1” es la partición que creamos. Ya que se creó el recurso sigue crear los meta datos, para crear los meta datos se escribe el siguiente comando
--drbdadm create-md disk1 (El nombre del recurso)
-Después de crear los meta datos sigue iniciar los servicios, en las dos máquinas para eso se escribe el siguiente comando:
--sudo service drbd start
-Para ver que los dos se sincronización exitosamente, se procede a verificar que los dos están conectados con el siguiente comando:
--sudo drbd-overview
-Y el resultado tendría que ser el siguiente:
--0:disk1 Connected Secondary/Secondary Inconsistent/Inconsistent Cr-----
-Una vez que se verifico que se sincronizaron se pone el siguiente comando para sincronizar los datos:
--sudo drbdadm -- --clear-bitmap new-current-uuid export
-Poniendo otra vez el comando para verificar si se actualizaron los datos en los dos discos, una vez puesto el comando, el resultado sería:
--sudo drbd-overview
--0:disk1 Connected Secondary/Secondary UpToDate/UpToDate C r--
-Una vez que los datos ya se actualizaron lo que se hace es establecer un nodo como primario y todos los cambios que se hagan en el nodo primario se harán automáticamente en el nodo secundario, con esto podemos formatear la unidad creada para eso se escribe la siguiente linea: sudomkfs -t ext3 /dev/drbd0 con esto ya tenemos el sistema de archivos clusterizados.
 
-Configuración Pacemaker
+- drbdadm create-md disk1 (El nombre del recurso)
+
+Después de crear los meta datos sigue iniciar los servicios, en las dos máquinas para eso se escribe el siguiente comando:
+
+- sudo service drbd start
+
+Para ver que los dos se sincronización exitosamente, se procede a verificar que los dos están conectados con el siguiente comando:
+
+-sudo drbd-overview
+
+Y el resultado tendría que ser el siguiente:
+
+- 0:disk1 Connected Secondary/Secondary Inconsistent/Inconsistent Cr-----
+ 
+Una vez que se verifico que se sincronizaron se pone el siguiente comando para sincronizar los datos:
+
+- sudo drbdadm -- --clear-bitmap new-current-uuid export
+
+Poniendo otra vez el comando para verificar si se actualizaron los datos en los dos discos, una vez puesto el comando, el resultado sería:
+
+- sudo drbd-overview
+- 0:disk1 Connected Secondary/Secondary UpToDate/UpToDate C r--
+
+Una vez que los datos ya se actualizaron lo que se hace es establecer un nodo como primario y todos los cambios que se hagan en el nodo primario se harán automáticamente en el nodo secundario, con esto podemos formatear la unidad creada para eso se escribe la siguiente linea: 
+
+- sudo mkfs -t ext3 /dev/drbd0 
+
+con esto ya tenemos el sistema de archivos clusterizados.
+
+###Configuración Pacemaker
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
-IPVirtual: Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
+###IPVirtual: Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
--crm configure primitive IPVirtual ocf:heartbeat:IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
+- crm configure primitive IPVirtual ocf:heartbeat:IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
 
 Apache: Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
 
--crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
+- crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
 
 DRBD Para la configuración de DRBD y pacemaker se escribe las siguientes líneas:
 crm configure
--crm(live)configure# primitive res_drbd_disk1 ocf:linbit:drbd paramsdrbd_resource="disk1"
--crm(live)configure# primitive res_fs ocf:heartbeat:Filesystem params device="/dev/drbd0"directory="/mnt" fstype="ext3"
--crm(live)configure# msms_drbd_disk1 res_drbd_disk1 meta notify="true"master-max="1" master-node-max="1" clone-max="2"clone-node-max="1" 
--crm(live)configure#colocation c_export_on_drbd inf: res_fs ms_drbd_export:Master
--crm(live)configure# ordero_drbd_before_nfs inf: ms_drbd_export:promote res_fs:start
--crm(live)configure#property stonith-enabled=false crm(live)configure#property no-quorum-policy=ignore
--crm(live)configure# commit
--crm(live)configure# exit
+- crm(live)configure# primitive res_drbd_disk1 ocf:linbit:drbd paramsdrbd_resource="disk1"
+- crm(live)configure# primitive res_fs ocf:heartbeat:Filesystem params device="/dev/drbd0"directory="/mnt" fstype="ext3"
+- crm(live)configure# msms_drbd_disk1 res_drbd_disk1 meta notify="true"master-max="1" master-node-max="1" clone-max="2"clone-node-max="1" 
+- crm(live)configure#colocation c_export_on_drbd inf: res_fs ms_drbd_export:Master
+- crm(live)configure# ordero_drbd_before_nfs inf: ms_drbd_export:promote res_fs:start
+- crm(live)configure#property stonith-enabled=false crm(live)configure#property no-quorum-policy=ignore
+- crm(live)configure# commit
+- crm(live)configure# exit
 
