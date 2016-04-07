@@ -305,7 +305,7 @@ Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecu
 el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
 Iniciar el MySQL Cluster
 
-##Clúster HA WEB Y FTP
+##Clúster HA WEB
 Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
 
 - Servidor1: 10.10.10.195 /26
@@ -355,7 +355,8 @@ Después de hacer eso, se inicia el servicio de corosyncy se reiniciar el servic
 - sudo service corosync start 
 - sudo service pacemaker start 
 
-Sistema de archivos clusterizados
+##Sistema de archivos clusterizados
+
 Para el uso de sistema de archivo para clúster se usó DRBD un programa que me permite compartir información entre las dos máquinas, su funcionamiento es como el RAID 1 pero en red, lo que hace es replicar la información de un disco a otro, entonces se comienza creando las particiones correspondiente que se van a usar para el clúster ,en este caso vamos a usar un disco que agregamos y vamos a crear la partición en este disco, para crear la particiones: 
 sudo fdisk /dev/sdb (sbd es el disco que se agregó)
 - n -> nueva partición
@@ -422,16 +423,21 @@ Para la configuración de pacemaker se necesitan que este iniciado los servicios
 Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
-- crm configure primitive IPVirtual ocf:heartbeat:IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
+- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
 
-Apache: Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
+###Apache 
+
+Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
 
 - crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
 
-DRBD Para la configuración de DRBD y pacemaker se escribe las siguientes líneas:
-crm configure
+###DRBD 
+
+Para la configuración de DRBD y pacemaker se escribe las siguientes líneas:
+
+- crm configure
 - crm(live)configure# primitive res_drbd_disk1 ocf:linbit:drbd paramsdrbd_resource="disk1"
-- crm(live)configure# primitive res_fs ocf:heartbeat:Filesystem params device="/dev/drbd0"directory="/mnt" fstype="ext3"
+- crm(live)configure# primitive res_fs ocf:heartbeat :Filesystem params device="/dev/drbd0"directory="/mnt" fstype="ext3"
 - crm(live)configure# msms_drbd_disk1 res_drbd_disk1 meta notify="true"master-max="1" master-node-max="1" clone-max="2"clone-node-max="1" 
 - crm(live)configure#colocation c_export_on_drbd inf: res_fs ms_drbd_export:Master
 - crm(live)configure# ordero_drbd_before_nfs inf: ms_drbd_export:promote res_fs:start
