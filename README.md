@@ -195,13 +195,26 @@ Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecu
 el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
 Iniciar el MySQL Cluster
 
+Clusters HA
+Se hicieron tres clúster HA con seis máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las diferentes direcciones:
+
 ##Clúster HA WEB
-Para hacer el clúster HA se usaron dos máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las siguientes líneas:
+- ServerHTTP1: 192.168.2.194 /26
+- ServerHTTP2: 192.168.2.195 /26
+- IPVirtual   192.168.2.196  /26
 
-- Servidor1: 10.10.10.195 /26
-- Servidor2: 10.10.10.196 /26
+##Cluster HA Archivos
+- ServerFile1: 192.168.2.197 /26
+- ServerFile2: 192.168.2.198 /26
+- IPVirtual    192.168.2.199 /26
 
-Para crear el clúster se hizo con varios servicios, uno el corosync que sirve para sincronizar las maquinas, el otro era pacemaker que era el que se encargaba de si una maquina estaba activa la instalación de estos servicios se hicieron en Ubuntu server 14.04, con la siguiente línea se instala:
+##Cluster HA FTP
+- ServerFTP1: 192.168.2.201 /26
+- ServerFTP2: 192.168.2.202 /26
+- IPVirtual   192.168.2.203 /26
+
+##Pacemaker y Corosync
+Estos servicios se instalan en las seis maquinas virtuales, para crear el clúster se hizo con varios servicios, uno el corosync que sirve para sincronizar las maquinas, el otro era pacemaker que era el que se encargaba de si una maquina estaba activa, la instalación de estos servicios se hicieron en Ubuntu server 14.04, con la siguiente línea se instala:
 
 - sudo apt-get update
 - sudo apt-get upgrade
@@ -218,34 +231,83 @@ Una vez generada la clave se procede a copiar el archivo al otro servidor para p
 
 Una vez que genere la clave, se tiene que modificar el archivo de corosyncque se encuentra en /etc/corosync/corosync.conf y se escribe las siguientes líneas:
 
+#Cluster HA WEB
 
-totem{
- version:2 
-secauth:off 
-cluster_name: clusterarchivos 
-transport:udpu 
-} 
-nodelist{ 
-node{ 
-ring0_addr:servidor1 
-nodeid:1 } 
-node{ ring0_addr:servidor2 
-nodeid:2 }
- } 
-quorum{ 
-provider:corosync_votequorum 
-two_node:1 } 
+- totem{
+- version:2 
+- secauth:off 
+- cluster_name: clusterweb
+- transport:udpu 
+- } 
+- nodelist{ 
+- node{ 
+- ring0_addr:ServerHTTP1
+- nodeid:1 } 
+- node{ ring0_addr:ServerHTTP2
+- nodeid:2 }
+- } 
+- quorum{ 
+- provider:corosync_votequorum 
+- two_node:1 } 
 
-Esto se tiene que hacer tanto en el servidor1 como en el servidor2, una vez hecho esto, se modifica otra línea para que comience el servicio cuando se inicia el servidor, el archivo que se modifica se encuentra en etc/default/corosync y se agrega “yes” a la línea que tiene: 
+#Cluster HA Archivos
+
+- totem{
+- version:2 
+- secauth:off 
+- cluster_name: clusterarchivos 
+- transport:udpu 
+- } 
+- nodelist{ 
+- node{ 
+- ring0_addr:ServerFile1
+- nodeid:1 } 
+- node{ ring0_addr:ServerFile2
+- nodeid:2 }
+- } 
+- quorum{ 
+- provider:corosync_votequorum 
+- two_node:1 } 
+
+#Cluster HA FTP
+
+- totem{
+- version:2 
+- secauth:off 
+- cluster_name: clusterftp
+- transport:udpu 
+- } 
+- nodelist{ 
+- node{ 
+- ring0_addr:ServerFTP1
+- nodeid:1 } 
+- node{ ring0_addr:FTP2
+- nodeid:2 }
+- } 
+- quorum{ 
+- provider:corosync_votequorum 
+- two_node:1 } 
+
+
+Esto se tiene que hacer en los servidores conrrespondientes, una vez hecho esto, se modifica otra línea para que comience el servicio cuando se inicia el servidor, el archivo que se modifica se encuentra en etc/default/corosync y se agrega “yes” a la línea que tiene: 
 
 - START=yes
+
+Se cambia el orden de pacemaker
+
+- update-rc.d pacemaker 20 01
+
+Ya que corosync inicia en el 19
 
 Después de hacer eso, se inicia el servicio de corosyncy se reiniciar el servicio pacemaker
 
 - sudo service corosync start 
 - sudo service pacemaker start 
 
-##Sistema de archivos clusterizados
+
+##Configuracion Cluster HA Archivos
+
+###Sistema de archivos clusterizados
 
 Para el uso de sistema de archivo para clúster se usó DRBD un programa que me permite compartir información entre las dos máquinas, su funcionamiento es como el RAID 1 pero en red, lo que hace es replicar la información de un disco a otro, entonces se comienza creando las particiones correspondiente que se van a usar para el clúster ,en este caso vamos a usar un disco que agregamos y vamos a crear la partición en este disco, para crear la particiones: 
 sudo fdisk /dev/sdb (sbd es el disco que se agregó)
@@ -260,18 +322,18 @@ Esto se hace también en el servidor2 una vez creado las particiones sigue, inst
 
 Una vez instalado se procede a crear un archivo que es /etc/drbd.conf que va a contener la siguiente información
 
-Resource disk1 {
-device /dev/drbd0;
-disk /dev/sdb1;
-meta-diskinternal;
-on servidor1 {
-address10.10.10.195:7788;
-} on servidor2 {
-address10.10.10.196:7788;
-} syncer
-{ rate 10M;
-}
-}
+- Resource disk1 {
+- device /dev/drbd0;
+- disk /dev/sdb1;
+- meta-diskinternal;
+- on servidor1 {
+- address 192.168.2.195:7788;
+- } on servidor2 {
+- address 192.168.2.196:7788;
+- } syncer
+- { rate 10M;
+- }
+- }
 
 Donde disk1 va hacer el nombre del recurso, “/dev/drbd0” es la unidad que van a compartir los dos servidores y “/dev/sdb1” es la partición que creamos. Ya que se creó el recurso sigue crear los meta datos, para crear los meta datos se escribe el siguiente comando
 
@@ -304,8 +366,38 @@ Una vez que los datos ya se actualizaron lo que se hace es establecer un nodo co
 
 con esto ya tenemos el sistema de archivos clusterizados.
 
-###Configuración Pacemaker
+###NFS
+Para que los otros cluster pudieran montar la unidad donde iban a estar almacenados sus datos, se uso nfs, para la instalacion de nfs se escribe la siguiente linea:
 
+- sudo apt-get install nfs-kernel-server
+
+Despues se crea una carpeta en la unidad montada por DRBD donde se van almacenar los datos de configuracion de NFS, para eso se escribieron las siguientes lineas
+
+- cd /mnt
+- mkdir data
+- En ServerFile1:
+- mv /var/lib/nfs/ /mnt/data/
+- ln -s /mnt/data/nfs/ /var/lib/nfs
+- mv /etc/exports /mnt/data
+- ln -s /mnt/data/exports /etc/exports
+- mkdir /mnt/export
+- mkdir /mnt/export/WEB
+- En ServerFile2:
+- rm -rf /var/lib/nfs
+- ln -s /mnt/data/nfs/ /var/lib/nfs
+- rm /etc/exports
+- ln -s /mnt/data/exports /etc/exports
+
+Se agrega en el archivo de configuracion de NFS que es lo que queremos montar para los nfs clientes, para eso se modifica el archivo "exports" que ahora se encuentra en /mnt/data/exports, y se agrega la siguiente linea:
+
+
+- /mnt/export/WEB   192.168.2.192/255.255.255.192(rw,wdelay,crossmnt,root_squeash,no_subtree_check,fsid=0)
+
+Despues de agregarlo, se inicia el servicio nfs
+
+- sudo service nfs-kernel-server start
+
+##Configuracion Pacemaker Cluster HA Archivos
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
 ###IPVirtual 
@@ -313,13 +405,7 @@ Para la configuración de pacemaker se necesitan que este iniciado los servicios
 Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
-- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
-
-###Apache 
-
-Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
-
-- crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
+- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="192.168.2.199" cidr_netmask="26" nic="eth0:0"
 
 ###DRBD 
 
@@ -334,4 +420,90 @@ Para la configuración de DRBD y pacemaker se escribe las siguientes líneas:
 - crm(live)configure#property stonith-enabled=false crm(live)configure#property no-quorum-policy=ignore
 - crm(live)configure# commit
 - crm(live)configure# exit
+
+###NFS
+- crm primitive configure NFSServer lsb:nfs-kernel-server op monitor="30s"
+
+
+##Configuracion Cluster HA WEB
+
+###Montar unidad NFS
+Para montar una unidad que esta dando un nfs server, se nesecita descargar el siguiente paquete:
+
+- apt-get install nfs-common
+
+Una vez instalado se procede a agregar la montura en /etc/fstab, para hacer eso se agrega la siguiente linea:
+
+- 192.168.2.199:/mnt/export/WEB /mnt nfs vers=3,user 0 0
+
+Se guarda y para ver si no hay problemas se escribe:
+
+- mount -a
+
+Y con esto ya tenemos la unidad montada como si fuera nuestra pero los archivos se almacenan en el servidor de archivos.
+
+###Instalacion Apache y PHP
+Para el cluster WEB se necesito la instalacion de Apache y PHP, y la instalacion de Wordpress que mas adelante se explicara como se instalo, para la instalacion de apache y php se escribe:
+
+- sudo apt-get install apache2 php5 php5-mysql 
+
+Despues de la instalacion se agrega al archivo de Apache, 2 hosts virtuales que van a corresponder a los dos subdominios, el archivo que se modifica es /etc/apache/sites-enabled/000-default.conf y se agrega las diferentes lineas
+
+Para el subdominio que va a tener el archivo HTML 
+
+- <VirtualHost *:80>
+-       ServerName www1.redes2.url
+-       ServerAlias redes2.url
+-       DocumentRoot /mnt/html/
+- </VirtualHost>
+
+Para el subdominio que va a tener el archivo wordpress
+
+- <VirtualHost *:80>
+-       ServerName wordpress.redes2.url
+-       ServerAlias www.wordpress.redes2.url
+-       DocumentRoot /mnt/wordpress
+- </VirtualHost>
+
+###Configuración Pacemaker Cluster HA WEB
+Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
+
+###IPVirtual
+
+Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al Apache.
+Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
+
+- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="192.168.2." cidr_netmask="26" nic="eth0:0"
+
+###Apache 
+
+Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
+
+- crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
+
+##Configuracion HA FTP
+
+
+
+
+
+
+
+
+
+
+###IPVirtual 
+
+Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
+Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
+
+- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
+
+###Apache 
+
+Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
+
+- crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
+
+
 
