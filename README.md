@@ -26,14 +26,13 @@ Servicio de hosting y redundancia.
 ![Alt text](https://github.com/panlopezv/ProyectoIRedesII/blob/master/red.png?raw=true"Optional title")
 
 
-##Ruto dinámico en Vyatta(RIP).
-Al tener instalado el sistema es necesario i con el Usuario por defecto que ya viene con el sistema.  
+##Ruto dinámico en Vyatta(OSPF).
+Al tener instalado el sistema es necesario iniciar con el Usuario por defecto que ya viene con el sistema.  
 -	Login:”vyos”
--	 password: ”vyos”
+-	Password: ”vyos”
 
 Luego de esto debemos de ver nuestras interfaces, 
 -	vyatta@R1#  show interfaces
-
 
 Luego de que miramos que nuestras interfaces están bien, entramos a las configuraciones del router, y les asignamos la ip para cada interfaz.
   
@@ -42,9 +41,9 @@ Luego de que miramos que nuestras interfaces están bien, entramos a las configu
 -	vyatta@R1#  commit (este comando siempre debe de ejecutarse para que los cambios sean aplicados permanentemente).
 De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos
 
-###Configurar Rip.
+###Configurar OSPF area 0.
 -	vyatta@R0# configure
--	vyatta@R0# set protocols rip network 10.10.10.0/24
+-	vyatta@R0# set protocols ospf area 0 network 192.168.2.0/24
 
 
 ##Servidor FTP
