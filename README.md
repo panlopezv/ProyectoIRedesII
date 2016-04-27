@@ -231,7 +231,7 @@ Una vez generada la clave se procede a copiar el archivo al otro servidor para p
 
 Una vez que genere la clave, se tiene que modificar el archivo de corosyncque se encuentra en /etc/corosync/corosync.conf y se escribe las siguientes líneas:
 
-#Cluster HA WEB
+###Cluster HA WEB
 
 - totem{
 - version:2 
@@ -250,7 +250,7 @@ Una vez que genere la clave, se tiene que modificar el archivo de corosyncque se
 - provider:corosync_votequorum 
 - two_node:1 } 
 
-#Cluster HA Archivos
+###Cluster HA Archivos
 
 - totem{
 - version:2 
@@ -269,7 +269,7 @@ Una vez que genere la clave, se tiene que modificar el archivo de corosyncque se
 - provider:corosync_votequorum 
 - two_node:1 } 
 
-#Cluster HA FTP
+###Cluster HA FTP
 
 - totem{
 - version:2 
