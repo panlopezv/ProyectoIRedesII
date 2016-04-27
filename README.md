@@ -401,8 +401,6 @@ Despues de agregarlo, se inicia el servicio nfs
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
 ###IPVirtual 
-
-Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
 - crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="192.168.2.199" cidr_netmask="26" nic="eth0:0"
@@ -483,27 +481,56 @@ Para la configuración de Apache y que se inicie en el otro servidor si se cae u
 
 ##Configuracion HA FTP
 
+###Montar unidad NFS
+Para montar una unidad que esta dando un nfs server, se nesecita descargar el siguiente paquete:
 
+- apt-get install nfs-common
 
+Una vez instalado se procede a agregar la montura en /etc/fstab, para hacer eso se agrega la siguiente linea:
 
+- 192.168.2.199:/mnt/export/WEB /mnt nfs vers=3,user 0 0
 
+Se guarda y para ver si no hay problemas se escribe:
 
+- mount -a
 
+Y con esto ya tenemos la unidad montada como si fuera nuestra pero los archivos se almacenan en el servidor de archivos.
 
+###Proftpd
 
+Para instalar Proftpd se escribe la siguiente linea
+
+- apt-get install proftpd
+
+Despues de instalar el paquete se procede a crear los usuarios, los usuarios que se van a usar son:
+
+- adduser userhtml 
+- adduser userword
+
+userhtml es el que se va a encargar de subir,borrar,modificar el subdominio html
+userword es el que se va a encargar de subir,borrar,modificar el subdominio wordpress
+
+Despues de agregar los usuarios, hay que indicarles en que carpetan van acceder por defecto para eso, se modifica el
+achivo de proftpd que se encuentra en /etc/proftpd/proftpd.conf y se busca la linea que esta comentada que dice "DefaultRoot"
+una vez encontrado se desmarca y se agregan las siguientes lineas:
+
+- DefaultRoot       /mnt/html userhtml
+- DefaultRoot       /mnt/wordpress userword
+
+Y con esto cuando acceda un cliente FTP, se va a dirigir a su carpeta correspondiente.
+
+###Configuración Pacemaker Cluster HA FTP
 
 ###IPVirtual 
 
-Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP y/o Apache.
+Va hacer la ip virtual con el que se van a comunicar las demás máquinas para poder acceder al FTP.
 Para la configuración de la IPVirtual y que esta se posicione en el nodo que tiene los servicios en ese momento, si el nodo se cae estese levanta en el otro nodo, para configurar la IPVirtual se escribe el siguiente comando:
 
-- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="10.10.10.197" cidr_netmask="26" nic="eth0:0"
+- crm configure primitive IPVirtual ocf:heartbeat :IPaddr2 params ip="192.168.2.203" cidr_netmask="26" nic="eth0:0"
 
-###Apache 
+###FTP
 
-Para la configuración de Apache y que se inicie en el otro servidor si se cae uno de los nodos, es el siguiente:
-
-- crm configure primitive Apache lsb:apache2 op monitor interval=”15s”meta target_role=”Started”
+- crm configure primitive FTP lsb:proftpd op monitorinterval="30s"
 
 
 
