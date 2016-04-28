@@ -473,26 +473,35 @@ Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar bl
           CREATE DATABASE wordpress;
         Toda sentencia de MySQL debe finalizar con punto y coma(;), Detrás, vamos a crear una cuenta de usuario de MySQL:
           CREATE USER wordpressuser@localhost IDENTIFIED BY 'password'
-        En este momento, ya se tiene la base de datos y la cuenta de usuario, cada uno hechos especificamente para WordPress. Sin embargo, el usuario no tiene acceso a la base de datos. Para solucionarlo se da acceso al usuario con el siguente comando:
+        En este momento, ya se tiene la base de datos y la cuenta de usuario, cada uno hechos especificamente para 
+        WordPress. Sin embargo, el usuario no tiene acceso a la base de datos. Para solucionarlo se da acceso al usuario 
+        con el siguente comando:
           GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;
-        Ahora ele usuario ya tiene acceso a la base de datos. Se necesita hacer un flush a los privilegios para que la instancia de MySQL sepa acerca de los cambios que hemos realizado sobre los privilegios recientemente:
+        Ahora ele usuario ya tiene acceso a la base de datos. Se necesita hacer un flush a los privilegios para 
+        que la instancia de MySQL sepa acerca de los cambios que hemos realizado sobre los privilegios recientemente:
           FLUSH PRIVILEGES;
         Configurado todo esto, podemos salir de la linea de comandos de MySQL escribiendo:
           exit
 
 ###Paso 2. Descargar WordPress
-        A continuacion, se descargan los archivos Wordpress de su sitio web. Se debe de actualizar nuestro indice local de paquetes:
+        A continuacion, se descargan los archivos Wordpress de su sitio web. Se debe de actualizar nuestro indice 
+        local de paquetes:
           sudo apt-get update
         Y tras ellos, deberemos obtener los dos paquetes necesarios:
           sudo apt-get install php5-gd libssh2-php
-        Esto permitirá que trabajes con imagenes. que isntales plugins y que actualices porciones de tu sitio usando tus credenciales SSH para logarte.
+        Esto permitirá que trabajes con imagenes. que isntales plugins y que actualices porciones de tu sitio usando 
+        tus credenciales SSH para logarte.
         
 ###Paso 3. Configurar WordPress
-        Ya descargado, se descomprime el archivo quedandose una carpeta llamada wordpress, esta carpeta se copia en el directorio de Apache(se debe de tener ya instalada Apache) "/var/www/html". Una vez copiada la carpeta se debe de crear el archivo de configuracion. WorPress ya trae un archivo de configuracion de ejemplo, este se copia a la configuracion por defecto para que WordPress reconozca al archivo. Se hara así:
+        Ya descargado, se descomprime el archivo quedandose una carpeta llamada wordpress, esta carpeta se copia en el 
+        directorio de Apache(se debe de tener ya instalada Apache) "/var/www/html". Una vez copiada la carpeta se debe 
+        de crear el archivo de configuracion. WorPress ya trae un archivo de configuracion de ejemplo, este se copia a 
+        la configuracion por defecto para que WordPress reconozca al archivo. Se hara así:
           cp wp-config-sample.php wp-config.php
         Ahora que se tiene un archivo de configuracion con el que trabajar, se abre con un editor de texto:
           nano wp-config.php
-        Abierto se debe de encontrar la configuraciones de DB_NAME, DB_USER, DB_PASSWORD para que WordPress pueda conectar y auntenticarse correctamente en la base de datos creada.
+        Abierto se debe de encontrar la configuraciones de DB_NAME, DB_USER, DB_PASSWORD para que WordPress pueda 
+        conectar y auntenticarse correctamente en la base de datos creada.
           / ** MySQL settings - You can get this info from your web host ** //
           
           /** The name of the database for WordPress */
@@ -505,9 +514,14 @@ Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar bl
           define('DB_PASSWORD', 'contraseña');
 
 ###Paso 4. Completar la instalación
-        Ahora que se tiene los archivos en su sitio y tu software esta configurado, se completa la instalación a través de la interfaz web. En el navegador web, dirigirse a la URL de tu servidor web:
+        Ahora que se tiene los archivos en su sitio y tu software esta configurado, se completa la instalación a 
+        través de la interfaz web. En el navegador web, dirigirse a la URL de tu servidor web:
           http://nombre_DNS_o_IP
-        Veras la página inicial de configuración, donde se creara una cuenta inicial de administrador de tu sitio web. Rellenar la informacion que te pide. Cuando se haya finalizado, se da click en el botón de instalar abajo. WordPress confirma la instalación y te pide que accedas con la cuenta que se acaba de crear. Presionar el botón debajo y después rellenar los campos necesarios para acceder con la información de tu cuenta.
+        Veras la página inicial de configuración, donde se creara una cuenta inicial de administrador de tu sitio 
+        web. Rellenar la informacion que te pide. Cuando se haya finalizado, se da click en el botón de instalar 
+        abajo. WordPress confirma la instalación y te pide que accedas con la cuenta que se acaba de crear. 
+        Presionar el botón debajo y después rellenar los campos necesarios para acceder con la información de tu 
+        cuenta.
         
         Tras esto se vera la información de WordPress y se podra comenzar a montar su web o blog.
 
