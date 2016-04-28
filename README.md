@@ -554,18 +554,38 @@ de producción. Para esto se instaló Vino en el área de desarrollo, y KRDC en 
 éste ultimo se instala con el comando apt-get install KRDC.
 
 1. La instalación del servidor VNC se hace desde consola tecleando:
-  a. sudo apt-get install vino.
+  - sudo apt-get install vino.
 2. Para configurar el servidor hay que acceder a las preferencias de compartición de escritorio con el siguiente comando:
-  a. vino-preferences.
+  - vino-preferences.
 3. La configuración empleada en el servidor vnc es:
-  a. Permitir a otros usuarios ver mi escritorio.
-  b. Permitir a otros usuarios controlar mi escritorio.
-  c. Requerir que el usuario introduzca una contraseña: “vyatta”.
+  - Permitir a otros usuarios ver mi escritorio.
+  - Permitir a otros usuarios controlar mi escritorio.
+  - Requerir que el usuario introduzca una contraseña: “vyatta”.
 4. Para permitir acceso remoto se ingresa el siguiente comando:
-  a. gsettings reset org.gnome.Vino network-interface.
+  - gsettings reset org.gnome.Vino network-interface.
 5. Por último se inicia el servicio con los comandos:
-  a. export DISPLAY=:0.0
-  b. /usr/lib/vino/vino-server &
+  - export DISPLAY=:0.0
+  - /usr/lib/vino/vino-server &
+
+##Sincronización con el área de producción
+Desde el área de desarrollo era necesario poder actualizar tanto los archivos web para el servicio web clusterizado del área de producción con el servicio clusterizado de base de datos.
+
+###Sincronización de los servicios Mysql
+Para ésto se ha creado un script que primero obtiene una copia de la base de datos del área de desarrollo, luego se borra la
+base de datos del cluster en el área de producción (esto para evitar cualquier pérdida de integridad en la base de datos), y
+por último se restauraba en éste la copia anteriormente creada, para ésto se implementaron las siguientes instrucciones:
+
+FECHA=$(date +"%d%m%Y")
+mysqldump -uwordpressuser -ppassword wordpress > /home/ubuntu/Backups/$FECHA.sql
+sed -i '1i use wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+sed -i '1i create database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+sed -i '1i drop database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+mysql -uusuariowp -h 192.168.2.98 -paleXela wordpress < /home/ubuntu/Backups/$FECHA.sql
+
+###Sincronización de los archivos web
+Para ésto se utiliza el cliente FTP, tal y como se describió en la sección anterior. Por medio de filezilla se accede al
+usuario correspondiente, bien sea al usuario de administración de wordpress o al usuario de administración html y luego
+reemplazar allí los archivos necesarios.
 
 ##Dominio de Internet con No-Ip
 Para el acceso a nuestra red desde internet se ha registrado un dominio temporal de internet en la página de No-Ip para lo cual
