@@ -373,20 +373,20 @@ Para que los otros cluster pudieran montar la unidad donde iban a estar almacena
 
 Despues se crea una carpeta en la unidad montada por DRBD donde se van almacenar los datos de configuracion de NFS, para eso se escribieron las siguientes lineas
 
-- cd /mnt
-- mkdir data
-- En ServerFile1:
-- mv /var/lib/nfs/ /mnt/data/
-- ln -s /mnt/data/nfs/ /var/lib/nfs
-- mv /etc/exports /mnt/data
-- ln -s /mnt/data/exports /etc/exports
-- mkdir /mnt/export
-- mkdir /mnt/export/WEB
-- En ServerFile2:
-- rm -rf /var/lib/nfs
-- ln -s /mnt/data/nfs/ /var/lib/nfs
-- rm /etc/exports
-- ln -s /mnt/data/exports /etc/exports
+    cd /mnt
+    mkdir data
+    En ServerFile1:
+    mv /var/lib/nfs/ /mnt/data/
+    ln -s /mnt/data/nfs/ /var/lib/nfs
+    mv /etc/exports /mnt/data
+    ln -s /mnt/data/exports /etc/exports
+    mkdir /mnt/export
+    mkdir /mnt/export/WEB
+    En ServerFile2:
+    rm -rf /var/lib/nfs
+    ln -s /mnt/data/nfs/ /var/lib/nfs
+    rm /etc/exports
+    ln -s /mnt/data/exports /etc/exports
 
 Se agrega en el archivo de configuracion de NFS que es lo que queremos montar para los nfs clientes, para eso se modifica el archivo "exports" que ahora se encuentra en /mnt/data/exports, y se agrega la siguiente linea:
 
@@ -575,12 +575,12 @@ Para ésto se ha creado un script que primero obtiene una copia de la base de da
 base de datos del cluster en el área de producción (esto para evitar cualquier pérdida de integridad en la base de datos), y
 por último se restauraba en éste la copia anteriormente creada, para ésto se implementaron las siguientes instrucciones:
 
-FECHA=$(date +"%d%m%Y")
-mysqldump -uwordpressuser -ppassword wordpress > /home/ubuntu/Backups/$FECHA.sql
-sed -i '1i use wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
-sed -i '1i create database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
-sed -i '1i drop database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
-mysql -uusuariowp -h 192.168.2.98 -paleXela wordpress < /home/ubuntu/Backups/$FECHA.sql
+    FECHA=$(date +"%d%m%Y")
+    mysqldump -uwordpressuser -ppassword wordpress > /home/ubuntu/Backups/$FECHA.sql
+    sed -i '1i use wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+    sed -i '1i create database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+    sed -i '1i drop database wordpress;' >> /home/ubuntu/Backups/$FECHA.sql
+    mysql -uusuariowp -h 192.168.2.98 -paleXela wordpress < /home/ubuntu/Backups/$FECHA.sql
 
 ###Sincronización de los archivos web
 Para ésto se utiliza el cliente FTP, tal y como se describió en la sección anterior. Por medio de filezilla se accede al
