@@ -37,7 +37,7 @@ Luego de esto debemos de ver nuestras interfaces,
 Luego de que miramos que nuestras interfaces están bien, entramos a las configuraciones del router, y les asignamos la ip para cada interfaz.
   
 -	vyatta@R1#  configure
--	vyatta@R1#  set interfaces ethernet eth2 address 10.10.10.66/26
+-	vyatta@R1#  set interfaces ethernet eth2 address 192.168.2.66/26
 -	vyatta@R1#  commit (este comando siempre debe de ejecutarse para que los cambios sean aplicados permanentemente).
 De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos
 
@@ -45,9 +45,97 @@ De esta forma establecemos las direcciones ip de cada interfaz si cometemos un e
 -	vyatta@R0# configure
 -	vyatta@R0# set protocols ospf area 0 network 192.168.2.0/24
 
+##Servidor LDAP
+LDAP es un protocolo a nivel de aplicación que permite el acceso a un servicio de directorio ordenado y distribuido para buscar diversa información en un entorno de red.
+Para cada versión de LDAP que constituye un documento de referencia:
+-	RFC 1777 para LDAP v.2
+-	RFC 2251 para LDAP v.3
+LDAP es un sistema cliente/servidor. El servidor puede usar una variedad de bases de datos para guardar un directorio, cada uno optimizado para operaciones de lectura rápidas y en gran volumen. Cuando una aplicación cliente LDAP se conecta a un servidor LDAP puede:
+-	conectarse.
+-	desconectarse.
+-	buscar información.
+-	comparar información.
+-	insertar entradas.
+-	cambiar entradas.
+-	eliminar entradas.
+Asimismo, el protocolo LDAP v3.0 ofrece mecanismos de cifrado (SSL, etc.) y autenticación para permitir el acceso seguro a la información almacenada en la base.
+Implementacion de LDAP con OpenLDAP.
+Paso 1. Instalar dominio de servidor, herramientas con el siguiente comando:
+	
+	sudo apt-get install slapd ldap-utils
+	
+Paso 2. Configurar contraseña de administrador LDAP.
 
+	Contraseña: "Admin123"
+
+Paso3. Configuración de dominio. redes2.url
+
+	dc=redes2,dc=url
+
+Paso 4. Configuración de unidades organizacionales. Almacenadas en el archivo /home/ubuntu/Documents/inicio.ldif
+	
+	dn: ou=usuarios,dc=redes2,dc=url
+	objectClass: top
+	objectClass: organizationalUnit
+	ou: usuarios
+	description: Usuarios
+
+	dn: ou=grupos,dc=redes2,dc=url
+	objectClass: top
+	objectClass: organizationalUnit
+	ou: grupos
+	description: Grupos
+	
+Paso 5. Cargar al servidor.
+
+	ldapadd -x -D cn=admin,dc=redes2,dc=url -W -f /home/ubuntu/Documents/inicio.ldif
+	
+Paso 6. Configurar un usuario de prueba "plopez". Almacenado en el archivo /home/ubuntu/Documents/usuario.ldif
+
+	dn: uid=plopez,ou=usuarios,dc=redes2,dc=url
+	objectClass: top
+	objectClass: inetOrgPerson
+	objectClass: posixAccount
+	objectClass: shadowAccount
+	uid: plopez
+	sn: Lopez
+	givenName: Pablo
+	cn: Pablo Lopez
+	displayName: Pablo Lopez
+	uidNumber: 10001
+	gidNumber: 15000
+	homeDirectory: /home/plopez
+	loginShell: /bin/bash
+	gecos: Pablo Lopez
+	userPassword: 0123456bcf
+	shadowExpire: -1
+	shadowFlag: 0
+	shadowLastChange: 10877
+	shadowMax: 999999
+	shadowMin: 8
+	shadowWarning: 7
+	mail: panlopezv@gmail.com
+	o: redes2
+	initials: PL
+	
+Paso 7. Cargar al servidor.
+
+	ldapadd -x -D cn=admin,dc=redes2,dc=url -W -f /home/ubuntu/Documents/usuario.ldif
+
+Paso 8. Descargar herramientas visuales para mejor gestion de los directorios.
+	
+	PHP LDAP Admin
+		Instalación
+			sudo apt-get install phpldapadmin
+		Ejecución
+			http://localhost/phpldapadmin/
+	PHP LDAP Admin
+		Instalación
+			sudo apt-get install ldap-account-manager
+		Ejecución
+			http://localhost/lam/
+	
 ##Servidor FTP
-
 FTP se utiliza para transferir archivos desde un host a otro a través de la red TCP. Hay 3 paquetes de servidor FTP populares disponibles PureFTPd, vsftpd y Proftpd. Aquí he utilizado Vsftpd que es la vulnerabilidad de peso ligero y menos. 
 
 Paso 1. Actualizar repositorios.
