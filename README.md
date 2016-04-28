@@ -140,8 +140,8 @@ Paso 8. Descargar herramientas visuales para mejor gestion de los directorios.
 		Ejecución
 			http://localhost/lam/
 	
-##Cliente Ldap
-Paso 1. Descargar la aplicación con 
+##Cliente LDAP
+Paso 1. Descargar la aplicación, con sus dependencias:
 
 	Sudo apt-get install libnss-ldap libpam-ldap ldap-utils –y
 	
@@ -149,41 +149,49 @@ Paso 2. Luego será necesario seguir los pasos siguientes.
 
 	Se coloca ldap://”ip del servidor ldap”
 	
-Paso 3. Luego se configura el dominio de la siguiente manera
+Paso 3. Luego se configura el dominio de la siguiente manera:
 
 	dc=redes2, dc=url
 	
-Paso 4. Luego se configura el usuario del administrador.
+Paso 4. Luego se configura el usuario del administrador:
 
 	cn=admin,dc=redes2, dc=url
 	
-Paso 5. Se ingresa la contraseña del administrador.
+Paso 5. Se ingresa la contraseña del administrador:
 
-Paso 6. Luego de finalizar la configuracion del cliente debemos ir a la configuración de nsswitch.conf con 
+Paso 6. Luego de finalizar la configuracion del cliente debemos ir a la configuración de nsswitch.conf con:
 
 	Sudo nano /etc/nsswitch.conf
 	
-Paso 7. Configuramos el passwd,group y shadow y al final le agregamos ldap
+Paso 7. Configuramos el passwd,group y shadow y al final le agregamos LDAP.
 
-Paso 8. Entramos a configurar y hay que modificar una línea de código.
+Paso 8. Entramos a configurar y hay que modificar una línea de código:
 
 	Sudo nano /etc/pam.d/common-password
 	
-Paso 9. Le agregamos a la última línea lo siguiente.
+Paso 9. Modificamos la siguiente linea de codigo:
 
 	Password [succes=1 user_unknown=ignore default=die] pam_ldap.so use_authtok try_first_pass
 	Por
 	Password [succes=1 user_unknown=ignore default=die] pam_ldap.so try_first_pass
 	
-Paso 10. Dembos de modicar el archivo de sesiones ingresando al siguiente archivo.
+Paso 10. Dembos de modicar el archivo de sesiones ingresando al siguiente archivo:
 
 	Sudo nano /etc/pam.d/common-session
 	
-Paso 11. Agregando una nueva sesión al archivo al final del archivo.
+Paso 11. Agregando una nueva sesión al archivo al final del archivo:
 
-	Sesión optional pam_mkhomedir.so skel=/etc/skel umask=077
+	session optional pam_mkhomedir.so skel=/etc/skel umask=077
+
+Paso 12. Instalamos sysv.
+
+	Sudo apt-get install sysv-rc-conf
 	
-Paso 12.Reiniciamos la máquina y cercioramos si tenemos conexión con el servidor.
+Paso 13. Iniciamos el servicio:
+
+	Sudo sysv-rc-conf libnss-ldap on
+	
+Paso 14. Reiniciamos la máquina y cercioramos si tenemos conexión con el servidor.
 
 
 ##Servidor FTP
