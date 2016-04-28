@@ -532,7 +532,42 @@ Para la configuración de la IPVirtual y que esta se posicione en el nodo que ti
 
 - crm configure primitive FTP lsb:proftpd op monitorinterval="30s"
 
-###Dominio de Internet con No-Ip
+##El área de desarrollo
+En este segmento de la red se tienen servidores HTTP (apache) y MYSQL (Mysql-server) para poder hacer las pruebas
+correspondientes con la página de wordpress y luego poder actualizar cualquier cambio ya definitivo que quiera hacerse a los
+archivos de la página. Para el funcionamiento correcto del área de desarrollo se utilizaron los siguientes complementos:
+
+###Cliente FTP
+También se necesita de un cliente FTP para poder compartir los archivos de wordpress con el cluster de archivos, que es donde
+los toma el cluster HTTP, para lo que se ha usado la implementación de FileZilla, instalado con el comando apt-get installa filezilla.
+
+###Servidor SSH
+Este servicio se implementa con la instalación del paquete openssh-server con el comando apt-get install openssh-server, ésto
+para poder brindarle acceso a los empleados, en la capa de acceso, al área de desarrollo, en caso de que necesitaran hacer
+alguna actualización ya sea en la base de datos o en los archivos de configuración del servidor HTTP.
+
+###Servidor-Cliente VNC
+El servicio de escritorio remoto se implementó también para poder brindar acceso a los empleados del área de acceso en caso de
+que se necesitara de una interacción más visual con el área de desarrollo a la hora de implementar cambios en la página de
+wordpress. Con esto también se les brinda la opción de usar el cliente FTP para poder actualizar los archivos de los servidores
+de producción. Para esto se instaló Vino en el área de desarrollo, y KRDC en un empleado de la capa de acceso como cliente VNC,
+éste ultimo se instala con el comando apt-get install KRDC.
+
+1. La instalación del servidor VNC se hace desde consola tecleando:
+  a. sudo apt-get install vino.
+2. Para configurar el servidor hay que acceder a las preferencias de compartición de escritorio con el siguiente comando:
+  a. vino-preferences.
+3. La configuración empleada en el servidor vnc es:
+  a. Permitir a otros usuarios ver mi escritorio.
+  b. Permitir a otros usuarios controlar mi escritorio.
+  c. Requerir que el usuario introduzca una contraseña: “vyatta”.
+4. Para permitir acceso remoto se ingresa el siguiente comando:
+  a. gsettings reset org.gnome.Vino network-interface.
+5. Por último se inicia el servicio con los comandos:
+  a. export DISPLAY=:0.0
+  b. /usr/lib/vino/vino-server &
+
+##Dominio de Internet con No-Ip
 Para el acceso a nuestra red desde internet se ha registrado un dominio temporal de internet en la página de No-Ip para lo cual
 es necesario hacerlo desde un ordenador que salga a internet con la misma ip pública que la del servidor web, de tal forma que
 despues sea posible desde el router redireccionar las peticiones web a los servicios correspondientes.
@@ -546,10 +581,5 @@ Para tales efectos es necesario
   también es posible hacerlo desde el router, en la parte de ruteo dinámico, en donde se configura la cuenta no-ip y el host
   para que él lo actualice.
 - Por último se redireccionan los servicios necesarios desde el router, por ejemplo HTTP, FTP y SSH hacia los equipos (la ip o
-  el nombre de equipo) que prestan el servicio. De esta forma será posible poder acceder a los servicios configurados desde   
+  el nombre de equipo) que prestan el servicio. De esta forma será posible poder acceder a los servicios configurados desde
   internet.
-
-
-
-
-
