@@ -466,7 +466,7 @@ Para el subdominio que va a tener el archivo wordpress
 ##Instalacion y Configuracion Wordpress
 Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar blogs y sitios web de manera flexible. Es util para cuando se quiere que un sitio web funcione rapidamente. Antes de inciar con la instalacion, es necesario tener ya configurado un servicio LAMP(Linux, Apache, MySQL, APACHE) en tu servidor. 
 
-###Paso 1. Crear una base de Datos Mysql y un usuario para Wordpress. 
+Paso 1. Crear una base de Datos Mysql y un usuario para Wordpress. 
         Para empezar, se necesita iniciar sesion con root en MySQL con el siguiente comando:
           mysql -u root -p
         Se le solicitara la contraseña, se ingresa. Luego, crear la base de datos:
@@ -480,14 +480,14 @@ Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar bl
         Configurado todo esto, podemos salir de la linea de comandos de MySQL escribiendo:
           exit
 
-###Paso 2. Descargar WordPress
+Paso 2. Descargar WordPress
         A continuacion, se descargan los archivos Wordpress de su sitio web. Se debe de actualizar nuestro indice local de paquetes:
           sudo apt-get update
         Y tras ellos, deberemos obtener los dos paquetes necesarios:
           sudo apt-get install php5-gd libssh2-php
         Esto permitirá que trabajes con imagenes. que isntales plugins y que actualices porciones de tu sitio usando tus credenciales SSH para logarte.
         
-###Paso 3. Configurar WordPress
+Paso 3. Configurar WordPress
         Ya descargado, se descomprime el archivo quedandose una carpeta llamada wordpress, esta carpeta se copia en el directorio de Apache(se debe de tener ya instalada Apache) "/var/www/html". Una vez copiada la carpeta se debe de crear el archivo de configuracion. WorPress ya trae un archivo de configuracion de ejemplo, este se copia a la configuracion por defecto para que WordPress reconozca al archivo. Se hara así:
           cp wp-config-sample.php wp-config.php
         Ahora que se tiene un archivo de configuracion con el que trabajar, se abre con un editor de texto:
@@ -504,13 +504,13 @@ Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar bl
           /** MySQL database password */
           define('DB_PASSWORD', 'contraseña');
 
-###Paso 4. Completar la instalación
-        Ahora que se tiene los archivos en su sitio y tu software esta configurado, se completa la instalación a través de la interfaz web.
-        En el navegador web, dirigirse a la URL de tu servidor web:
+Paso 4. Completar la instalación
+        Ahora que se tiene los archivos en su sitio y tu software esta configurado, se completa la instalación a través de la interfaz web. En el navegador web, dirigirse a la URL de tu servidor web:
           http://nombre_DNS_o_IP
         Veras la página inicial de configuración, donde se creara una cuenta inicial de administrador de tu sitio web. Rellenar la informacion que te pide. Cuando se haya finalizado, se da click en el botón de instalar abajo. WordPress confirma la instalación y te pide que accedas con la cuenta que se acaba de crear. Presionar el botón debajo y después rellenar los campos necesarios para acceder con la información de tu cuenta.
         
         Tras esto se vera la información de WordPress y se podra comenzar a montar su web o blog.
+
 ###Configuración Pacemaker Cluster HA WEB
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
