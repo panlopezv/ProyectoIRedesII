@@ -48,8 +48,9 @@ De esta forma establecemos las direcciones ip de cada interfaz si cometemos un e
 ##Servidor LDAP
 LDAP es un protocolo a nivel de aplicación que permite el acceso a un servicio de directorio ordenado y distribuido para buscar diversa información en un entorno de red.
 Para cada versión de LDAP que constituye un documento de referencia:
--	RFC 1777 para LDAP v.2
--	RFC 2251 para LDAP v.3
+-	RFC 1777 para LDAP v2.0
+-	RFC 2251 para LDAP v3.0
+
 LDAP es un sistema cliente/servidor. El servidor puede usar una variedad de bases de datos para guardar un directorio, cada uno optimizado para operaciones de lectura rápidas y en gran volumen. Cuando una aplicación cliente LDAP se conecta a un servidor LDAP puede:
 -	conectarse.
 -	desconectarse.
@@ -58,8 +59,11 @@ LDAP es un sistema cliente/servidor. El servidor puede usar una variedad de base
 -	insertar entradas.
 -	cambiar entradas.
 -	eliminar entradas.
+
 Asimismo, el protocolo LDAP v3.0 ofrece mecanismos de cifrado (SSL, etc.) y autenticación para permitir el acceso seguro a la información almacenada en la base.
+
 Implementacion de LDAP con OpenLDAP.
+
 Paso 1. Instalar dominio de servidor, herramientas con el siguiente comando:
 	
 	sudo apt-get install slapd ldap-utils
