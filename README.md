@@ -9,7 +9,7 @@ Redes 2
 Ing. Dhaby Xiloj.
 
 
-Proyecto No. 1
+Proyecto No. 2
 Servicio de hosting y redundancia.
 
 
@@ -531,6 +531,25 @@ Para la configuración de la IPVirtual y que esta se posicione en el nodo que ti
 ###FTP
 
 - crm configure primitive FTP lsb:proftpd op monitorinterval="30s"
+
+###Dominio de Internet con No-Ip
+Para el acceso a nuestra red desde internet se ha registrado un dominio temporal de internet en la página de No-Ip para lo cual
+es necesario hacerlo desde un ordenador que salga a internet con la misma ip pública que la del servidor web, de tal forma que
+despues sea posible desde el router redireccionar las peticiones web a los servicios correspondientes.
+
+Para tales efectos es necesario 
+
+- Crear una cuenta en https://www.noip.com.
+- Agregar un nuevo host, colocar el nombre y dominio deseado.
+- Si la dirección ip del servidor a redireccionar es asignada de forma manual, es necesario instalar la aplicación de no-ip2  
+  para que se encargara de actualizar la ip con el servicio por si recibía alguna ip distinta a la que tenía al inicio. Esto
+  también es posible hacerlo desde el router, en la parte de ruteo dinámico, en donde se configura la cuenta no-ip y el host
+  para que él lo actualice.
+- Por último se redireccionan los servicios necesarios desde el router, por ejemplo HTTP, FTP y SSH hacia los equipos (la ip o
+  el nombre de equipo) que prestan el servicio. De esta forma será posible poder acceder a los servicios configurados desde   
+  internet.
+
+
 
 
 
