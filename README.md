@@ -240,13 +240,17 @@ De esta manera habremos creado su carpeta home aparte del usuario. Tan solo nos 
     El comando use radd permite crear muchos usuarios automaticamente mediante archivos de     comandos (scripts)
 
 
-##Servidor Cluster MariaDB Galera
+#Servidor Cluster MariaDB Galera
 
 Cuando se trata de sistemas de bases de datos relacionales en un entorno de producción, a menudo es mejor tener algún tipo de procedimientos de réplica en su lugar. La replicación permite que sus datos sean transferidos a diferentes nodos de forma automática.
-Una simple replicación maestro-esclavo es más común en el mundo de SQL. Esto le permite utilizar un servidor "maestro" para manejar la escritura de datos, mientras que varios servidores "esclavos" se pueden utilizar para leer los datos. Mientras que la replicación maestro-esclavo es útil, no es tan flexible como la replicación maestro-maestro. En una configuración maestro-maestro, cada nodo es capaz de aceptar las escrituras y distribuirlos en todo el clúster. MariaDB no tiene una versión estable de esta manera predeterminada, sino un conjunto de parches conocidos como "Galera" que ayuda a implementar la replicación maestro-maestro síncrono.
+
+Una simple replicación maestro-esclavo es más común en el mundo de SQL. Esto le permite utilizar un servidor "maestro" para manejar la escritura de datos, mientras que varios servidores "esclavos" se pueden utilizar para leer los datos. Mientras que la replicación maestro-esclavo es útil, no es tan flexible como la replicación maestro-maestro. En una configuración maestro-maestro, cada nodo es capaz de aceptar las escrituras y distribuirlos en todo el clúster. 
+
+MariaDB no tiene una versión estable de esta manera predeterminada, sino un conjunto de parches conocidos como "Galera" que ayuda a implementar la replicación maestro-maestro síncrono.
+
 En esta guía, vamos a crear un clúster Galera usando Ubuntu server 14.04. Vamos a utilizar tres servidores para fines de demostración (la más pequeña) de racimo configurable, pero se recomiendan cinco nodos para situaciones de producción.
 
-###Requerimientos
+####Requerimientos
 
 -	3 máquinas virtuales con Ubuntu server 14.04
 -	VirtualBox 5.0.16
@@ -254,7 +258,7 @@ En esta guía, vamos a crear un clúster Galera usando Ubuntu server 14.04. Vamo
 
 Hacer el siguiente procedimiento para las tres máquinas
 
-###Descargar MariaDB Galera Clúster
+####Descargar MariaDB Galera Clúster
 
 	Sudo apt-get update
 	Sudo apt-get upgrade
@@ -275,9 +279,9 @@ Instalación MariaDB Galera Clúster
 
 Importante: tener la misma contraseña de root en las tres máquinas.
 
-###Configurar MariaDB Galera Clúster
+####Configurar MariaDB Galera Clúster
 
-Esta configuración se debe hacer en los tres nodos de datos. Por defecto MariaDB tiene un archivo de configuración en /etc/mysql/conf.d, nosotros crearemos un archivo, nosotros crearemos un archivo en el siguiente directorio con las configuraciones necesarias para el clúster.
+Esta configuración se debe hacer en los tres nodos de datos. Por defecto MariaDB tiene un archivo de configuración en 	/etc/mysql/conf.d, nosotros crearemos un archivo, nosotros crearemos un archivo en el siguiente directorio con las configuraciones necesarias para el clúster.
 
 	sudo nano /etc/mysql/conf.d/cluster.cnf
 
@@ -337,6 +341,7 @@ Usted verá un archivo que tiene el siguiente aspecto:
 	user     = debian-sys-maint
 	password = 03P8rdlknkXr1upf
 	socket   = /var/run/mysqld/mysqld.sock
+
 	[mysql_upgrade]
 	host     = localhost
 	user     = debian-sys-maint
@@ -346,7 +351,7 @@ Usted verá un archivo que tiene el siguiente aspecto:
 
 Simplemente tenemos que copiar esta información y pegarla en el mismo archivo en cada nodo.
 
-###Iniciar el clúster
+####Iniciar el clúster
 
 Para empezar, tenemos que detener el servicio MariaDB ejecución, de modo que nuestro grupo puede poner en línea.
 	
@@ -359,8 +364,49 @@ Cuando todos los procesos han dejado de correr, debe poner en marcha su primer n
 Con nuestra configuración de clúster, cada nodo que quiera conectarse, al menos otro nodo especificado en el archivo de configuración para obtener su estado inicial. Sin la --wsrep-new-cluster de parámetros, este comando podría fallar porque el primer nodo es incapaz de conectar con cualquier otro nodo.
 
 En cada uno de los otros nodos, ahora puede empezar a MariaDB como lo haría normalmente. Se buscará por cualquier miembro de la lista de clúster que no está en línea. Cuando se encuentran con el primer nodo, se unirán a la agrupación.
-sudo service mysql start
 
+	sudo service mysql start
+
+#HAProxy
+
+Las soluciones de balance de carga pueden ser tanto hardware como software. En este caso, nosotros vamos a optar por una solución software llamada HAProxy que instalaremos en otra máquina virtual independiente y que funcionará de proxy con el resto de nodos SQL de la arquitectura, a fin de repartir las peticiones.
+
+Lo primero que tenemos que hacer es instalar una nueva máquina virtual. Esta máquina solo va a actuar de proxy balanceador por lo que lo único que tenemos que instalar es el paquete HAProxy.
+
+	sudo apt-get install haproxy
+
+Una vez instalado vamos a configurarlo para que balance la carga de MySQL. Para ello abrimos con un editor el fichero 	/etc/haproxy/haproxy.cfg que se ha creado con contenido por defecto en la instalación del paquete.
+
+Esta es una posible configuración para nuestro caso:
+
+	global
+		maxconn 4096
+		user haproxy
+		group haproxy
+		daemon
+	
+	defaults
+		mode	http
+		option	tcplog
+		option	dontlognull
+		retries	3
+		option redispatch
+		contimeout	5000
+		clitimeout	50000
+		srvtimeout	50000
+	
+	listen	mysql-cluster 0.0.0.0:3306
+		mode tcp
+		balance roundrobin
+	
+		server nodo1 192.168.2.95:3306 check
+		server nodo2 192.168.2.96:3306 check
+		server nodo3 192.168.2.97:3306 check
+
+Reiniciamos el proxy indicándole donde está el fichero de configuración:
+
+	sudo haproxy -f /etc/haproxy/haproxy.cfg
+	
 #Clusters HA
 Se hicieron tres clúster HA con seis máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las diferentes direcciones:
 
