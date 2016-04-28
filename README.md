@@ -649,7 +649,7 @@ Para ésto se utiliza el cliente FTP, tal y como se describió en la sección an
 usuario correspondiente, bien sea al usuario de administración de wordpress o al usuario de administración html y luego
 reemplazar allí los archivos necesarios.
 
-Para esto se tuvo que hacer la previa instalación y configuracón de WordPress que se detallo anteriormente.
+Para la parte de el área de desarrollo se tuvo que hacer la previa instalación y configuracón de WordPress que se detalló anteriormente.
 
 ##Dominio de Internet con No-Ip
 Para el acceso a nuestra red desde internet se ha registrado un dominio temporal de internet en la página de No-Ip para lo cual
