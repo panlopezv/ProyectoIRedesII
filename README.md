@@ -240,107 +240,92 @@ De esta manera habremos creado su carpeta home aparte del usuario. Tan solo nos 
     El comando use radd permite crear muchos usuarios automaticamente mediante archivos de     comandos (scripts)
 
 
-##Servidor Cluster MySQL
-Requerimientos 
--	MySQL Cluster 
--	4 máquinas (virtuales o físicas)
-Las cuatro máquinas se distribuirán de la siguiente forma
--	1 nodo administrador  ip 10.10.10.96/26
--	2 nodos de datos  ip’s 10.10.10.97/26 y 10.10.10.98/26
--	1 nodo SQL 10.10.10.99/26
-Para la configuración del nodo administrador
-Descomprimir mysql-cluster-gpl.tar.gz y mover ndb_mgm y ndb_mgmd al directorio /usr/local/bin:
--	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
--	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
--	cp bin/ndb_mgm* /usr/local/bin
-y hacerlos ejecutables
--	cd /usr/local/bin
--	chmod +x ndb_mgm*
-crear el directorio y archivo de configuración
--	mkdir /var/lib/mysql-cluster
--	cd /var/lib/mysql-cluster
--	gedit config.ini
-el archivo de configuración debe contener lo siguiente:
-[ndbd default]
-Options affecting ndbd processes on all data nodes:
-NoOfReplicas=2     Number of replicas
-DataMemory=80M     How much memory to allocate for data storage
-IndexMemory=18M    How much memory to allocate for index storage
-                   For DataMemory and IndexMemory, we have used the
-                   default values. Since the "world" database takes up
-                   only about 500KB, this should be more than enough for
-                   this example Cluster setup.
-
-[tcp default]
-TCP/IP options:
-portnumber=2202   # This the default; however, you can use any
-                  # port that is free for all the hosts in the cluster
-                  # Note: It is recommended that you do not specify the port
-                  # number at all and simply allow the default value to be used
-                  # instead
-
-[ndb_mgmd]
-Management process options:
-hostname=10.10.10.96          # Hostname or IP address of MGM node
-datadir=/var/lib/mysql-cluster  # Directory for MGM node log files
-
-[ndbd]
- Options for data node "A":
-                                # (one [ndbd] section per data node)
-hostname=10.10.10.97          # Hostname or IP address
-datadir=/usr/local/mysql/data   # Directory for this data node's data files
-
-[ndbd]
- Options for data node "B":
-hostname=10.10.10.98          # Hostname or IP address
-datadir=/usr/local/mysql/data   # Directory for this data node's data files
+##Servidor Cluster MariaDB Galera
+Cuando se trata de sistemas de bases de datos relacionales en un entorno de producción, a menudo es mejor tener algún tipo de procedimientos de réplica en su lugar. La replicación permite que sus datos sean transferidos a diferentes nodos de forma automática.
+Una simple replicación maestro-esclavo es más común en el mundo de SQL. Esto le permite utilizar un servidor "maestro" para manejar la escritura de datos, mientras que varios servidores "esclavos" se pueden utilizar para leer los datos. Mientras que la replicación maestro-esclavo es útil, no es tan flexible como la replicación maestro-maestro. En una configuración maestro-maestro, cada nodo es capaz de aceptar las escrituras y distribuirlos en todo el clúster. MariaDB no tiene una versión estable de esta manera predeterminada, sino un conjunto de parches conocidos como "Galera" que ayuda a implementar la replicación maestro-maestro síncrono.
+En esta guía, vamos a crear un clúster Galera usando Ubuntu server 14.04. Vamos a utilizar tres servidores para fines de demostración (la más pequeña) de racimo configurable, pero se recomiendan cinco nodos para situaciones de producción.
+Requerimientos
+3 máquinas virtuales con Ubuntu server 14.04
+VirtualBox 5.0.16
+Red utilizada 192.168.2.64/26
+Hacer el siguiente procedimiento para las tres máquinas
+Descargar MariaDB Galera Clúster
+Sudo apt-get update
+Sudo apt-get upgrade
+Importamos la clave de firma GnuPG
+sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
+Añadir MariaDB a tu sources.list
+sudo apt-get install software-properties-common
+sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
+sudo add-apt-repository 'deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu trusty main'
+Instalación MariaDB Galera Clúster
+sudo apt-get install mariadb-galera-server
+Importante: tener la misma contraseña de root en las tres máquinas.
+Configurar MariaDB Galera Clúster
+Esta configuración se debe hacer en los tres nodos de datos. Por defecto MariaDB tiene un archivo de configuración en /etc/mysql/conf.d, nosotros crearemos un archivo, nosotros crearemos un archivo en el siguiente directorio con las configuraciones necesarias para el clúster.
+sudo nano /etc/mysql/conf.d/cluster.cnf
+Copiaremos y pegaremos el siguiente texto en el archivo.
 
 [mysqld]
- SQL node options:
-hostname=10.10.10.99          # Hostname or IP address
-                                # (additional mysqld connections can be
-                                # specified for this node for various
-                                # purposes such as running ndb_restore)
- 
-Configuración del nodo de datos (la misma configuración para los dos nodos)
-Descomprimir mysql-cluster-gpl.tar.gz y mover ndbd and ndbmtd al directorio /usr/local/bin:
--	tar -zxvf mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
--	cd mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64
--	cp bin/ndbd /usr/local/bin
-y hacerlos ejecutables
--	cd /usr/local/bin
--	chmod +x ndb*
-crear el directorio /usr/local/mysql/data
-crear un archivo de configuración
--	gedit /etc/my.cnf
-debe contener lo siguiente
-[mysqld]
- Options for mysqld process:
-ndbcluster                      # run NDB storage engine
+query_cache_size=0
+binlog_format=ROW
+default-storage-engine=innodb
+innodb_autoinc_lock_mode=2
+query_cache_type=0
+bind-address=0.0.0.0
 
-[mysql_cluster]
- Options for MySQL Cluster processes:
-ndb-connectstring=192.168.0.102  # location of management server 
-configuración del nodo SQL
-comprobar si en los archivos /etc/passwd  y  /etc/group  para verificar si ya existe un grupo y usuario de sistema llamados mysql. Si no es así, crear un nuevo  mysql  grupo de usuarios, y luego añadir un  mysql  usuario a este grupo:
--	groupadd mysql
--	useradd -g mysql mysql
-Descomprimir el archivo, y crear un enlace simbólico llamado  mysql  al directorio de mysql.
--	tar -C /usr/local mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64.tar.gz
--	ln -s /usr/local/mysql-cluster-gpl-7.3.7-linux-glibc2.5-x86_64 /usr/local/mysql
-pasar al directorio de mysql y ejecutar el script proporcionado para la creación de las bases de datos del sistema:
--	cd /usr/local/mysql
--	scripts/mysql_install_db --user=mysql
-Establecer los permisos necesarios para el servidor y el directorio de datos de MySQL
--	chown -R root .
--	chown -R mysql data
--	chgrp -R mysql .
-Copiar el script de arranque de MySQL en el directorio apropiado, volverlo ejecutable, y configurarlo para comenzar cuando el sistema operativo inicie.
--	cp support-files/mysql.server /etc/init.d
--	chmod +x /etc/init.d/mysql.server
--	update-rc.d mysql.server defaults
-el archivo de configuracion para este nodo es el mismo que la configuracion de los nodos de datos.
-Iniciar el MySQL Cluster
+# Galera Provider Configuration
+wsrep_provider=/usr/lib/galera/libgalera_smm.so
+#wsrep_provider_options="gcache.size=32G"
+
+# Galera Cluster Configuration
+wsrep_cluster_name="test_cluster"
+wsrep_cluster_address="gcomm://primera_ip,segunda_ip,tercera_ip"
+
+# Galera Synchronization Congifuration
+wsrep_sst_method=rsync
+#wsrep_sst_auth=user:pass
+
+# Galera Node Configuration
+wsrep_node_address="ip de este nodo"
+wsrep_node_name="nombre de este nodo"
+La primera sección se modifica o se reafirma algunos ajustes MariaDB / MySQL que permitirán MySQL para funcionar correctamente.
+
+La sección titulada " Galera Provider Configuration " se utiliza para configurar los componentes MariaDB que proporcionan una API de replicación writeset. Esto significa que Galera en nuestro caso, ya Galera es un wsrep (writeset replicación) proveedor.
+Podemos especificar los parámetros generales para configurar el entorno de replicación inicial. En general, usted no necesita hacer demasiado para conseguir un trabajo creado sin embargo.
+La sección "Configuración Galera Cluster" define el clúster que vamos a crear. En él se definen los miembros de la agrupación por dirección o dominio resoluble nombres de propiedad intelectual y se crea un nombre para el clúster para asegurarse de que los miembros se unen al grupo correcto.
+La sección "configuración de sincronización de Galera" define cómo el clúster se comunican y sincronizar los datos entre los miembros. Esto se utiliza sólo para la transferencia de estado que se produce cuando un nodo se pone en línea. Para nuestra configuración inicial, simplemente estamos usando rsync, ya que hace más o menos lo que queremos sin tener que utilizar componentes exóticos.
+La sección " Galera Cluster Configuration " se utiliza simplemente para aclarar la dirección IP y el nombre del servidor actual. Esto es útil cuando se trata de diagnosticar problemas en los registros y para poder hacer referencia a todos los servidores de múltiples maneras. El nombre puede ser cualquier cosa que le gustaría.
+Cuando esté satisfecho con su archivo de configuración de clúster, debe copiar el contenido de cada uno de los nodos individuales.
+Recuerde que para cambiar la sección " Galera Node Configuration " en cada servidor individual.
+Copia de la configuración de mantenimiento de Debian
+Actualmente, Ubuntu y servidores de Debian MariaDB utilizan un usuario de mantenimiento especial para hacer el mantenimiento de rutina. Algunas de las tareas que quedan fuera de la categoría de mantenimiento también se ejecutan como este usuario, incluidas las funciones importantes como parar MySQL.
+Con nuestro entorno de clúster que se comparte entre los nodos individuales, el usuario de mantenimiento, que ha generado de forma aleatoria credenciales de acceso en cada nodo, no será capaz de ejecutar comandos correctamente. Sólo el servidor inicial tendrá las credenciales correctas de mantenimiento, ya que los demás intentarán utilizar sus ajustes locales para acceder al entorno de clúster compartido.
+Podemos solucionar este problema simplemente copiando el contenido del archivo de mantenimiento para cada nodo individual:
+En uno de sus servidores, abra el archivo de configuración de mantenimiento de Debian:
+sudo nano /etc/mysql/debian.cnf
+Usted verá un archivo que tiene el siguiente aspecto:
+[client]
+host     = localhost
+user     = debian-sys-maint
+password = 03P8rdlknkXr1upf
+socket   = /var/run/mysqld/mysqld.sock
+[mysql_upgrade]
+host     = localhost
+user     = debian-sys-maint
+password = 03P8rdlknkXr1upf
+socket   = /var/run/mysqld/mysqld.sock
+basedir  = /usr
+Simplemente tenemos que copiar esta información y pegarla en el mismo archivo en cada nodo.
+Iniciar el clúster
+Para empezar, tenemos que detener el servicio MariaDB ejecución, de modo que nuestro grupo puede poner en línea.
+sudo service mysql stop
+Cuando todos los procesos han dejado de correr, debe poner en marcha su primer nodo de nuevo con un parámetro especial:
+sudo service mysql start --wsrep-new-cluster
+Con nuestra configuración de clúster, cada nodo que quiera conectarse, al menos otro nodo especificado en el archivo de configuración para obtener su estado inicial. Sin la --wsrep-new-cluster de parámetros, este comando podría fallar porque el primer nodo es incapaz de conectar con cualquier otro nodo.
+En cada uno de los otros nodos, ahora puede empezar a MariaDB como lo haría normalmente. Se buscará por cualquier miembro de la lista de clúster que no está en línea. Cuando se encuentran con el primer nodo, se unirán a la agrupación.
+sudo service mysql start
+
 
 #Clusters HA
 Se hicieron tres clúster HA con seis máquinas virtuales, en virtualbox, para la comunicación con el resto de computadoras la red se estableció como puente, cada una de las maquinas virtual tenían las diferentes direcciones:
