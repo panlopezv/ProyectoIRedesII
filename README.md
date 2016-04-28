@@ -26,7 +26,7 @@ Servicio de hosting y redundancia.
 ![Alt text](https://github.com/panlopezv/ProyectoIRedesII/blob/master/red.png?raw=true"Optional title")
 
 
-##Ruto dinámico en Vyatta(OSPF).
+##Ruto dinámico en Vyos (OSPF).
 Al tener instalado el sistema es necesario iniciar con el Usuario por defecto que ya viene con el sistema.  
 -	Login:”vyos”
 -	Password: ”vyos”
@@ -39,7 +39,8 @@ Luego de que miramos que nuestras interfaces están bien, entramos a las configu
 -	vyatta@R1#  configure
 -	vyatta@R1#  set interfaces ethernet eth2 address 192.168.2.66/26
 -	vyatta@R1#  commit (este comando siempre debe de ejecutarse para que los cambios sean aplicados permanentemente).
-De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos
+
+De esta forma establecemos las direcciones ip de cada interfaz si cometemos un error y deseamos quitar la ip que acabamos de asignar simplemente cambiamos el comando set  por delete. Si lo que deseamos es observar cómo está el archivo de configuración una vez hemos establecido las ips lo hacemos de forma individual u observamos todo el bloque a través de los siguientes comandos:
 
 ###Configurar OSPF area 0.
 -	vyatta@R0# configure
@@ -52,17 +53,17 @@ Para cada versión de LDAP que constituye un documento de referencia:
 -	RFC 2251 para LDAP v3.0
 
 LDAP es un sistema cliente/servidor. El servidor puede usar una variedad de bases de datos para guardar un directorio, cada uno optimizado para operaciones de lectura rápidas y en gran volumen. Cuando una aplicación cliente LDAP se conecta a un servidor LDAP puede:
--	conectarse.
--	desconectarse.
--	buscar información.
--	comparar información.
--	insertar entradas.
--	cambiar entradas.
--	eliminar entradas.
+-	Conectarse.
+-	Desconectarse.
+-	Buscar información.
+-	Comparar información.
+-	Insertar entradas.
+-	Cambiar entradas.
+-	Eliminar entradas.
 
 Asimismo, el protocolo LDAP v3.0 ofrece mecanismos de cifrado (SSL, etc.) y autenticación para permitir el acceso seguro a la información almacenada en la base.
 
-Implementacion de LDAP con OpenLDAP.
+###Implementacion de LDAP con OpenLDAP.
 
 Paso 1. Instalar dominio de servidor, herramientas con el siguiente comando:
 	
@@ -806,3 +807,46 @@ Para tales efectos es necesario
   el nombre de equipo) que prestan el servicio. De esta forma será posible poder acceder a los servicios configurados desde
   internet.
 
+##Servidor DHCP y Punto de acceso Wireless
+
+En la capa de acceso se implemento un punto de acceso Wireless para que los desarrolladores/clientes tengan acceso a través de la red 172.16.1.0/24
+DHCP es un servicio que usa protocolo de red de tipo cliente/servidor en el que generalmente un servidor posee una lista de direcciones IP dinámicas y las va asignando a los clientes conforme éstas van quedando libres, sabiendo en todo momento quién ha estado en posesión de esa IP, cuánto tiempo la ha tenido y a quién se la ha asignado después. Así los clientes de una red IP pueden conseguir sus parámetros de configuración automáticamente.
+
+###Configuración de interfaz wireless en Vyos.
+
+Paso 1. Ingresar a las configuraciones.
+
+	configure
+	
+Paso 2. Configurar la interfaz wireless wlan0 como Access-Point, el canal de comunicación y el modo g (25-54 Mbps a 2.4 Ghz).
+
+	set interface wireless wlan0 type access-point channel 11 mode g
+
+Paso 3. Configurar SSID para identificar los paquetes pertenecientes a esta red.
+
+	set interface wireless wlan0 ssid REDES2
+	
+Paso 4. Configurar autenticación con contraseña WPA-2PSK
+
+	set interface wireless wlan0 security wpa mode both passphrase redes2url
+	
+Paso 5. Configurar ip estatica para la interfaz wireless.
+	
+	set interface wireless wlan0 address 172.16.1.1/24
+	
+###Configuración de servidor DHCP.
+Paso 1. Configurar nombre y subred.
+
+	set service dhcp-server shared-network-name REDES2 subnet 172.16.1.0/24
+
+Paso 2. Configurar rango para asignar ip dinamicamente.
+	
+	set service dhcp-server shared-network-name REDES2 start 172.16.1.2 stop 172.16.1.254
+
+Paso 3. Configurar router por defecto.
+	
+	set service dhcp-server shared-network-name REDES2 default-router 172.16.1.1
+
+Paso 4. Configurar servidor dns.
+
+	set service dhcp-server shared-network-name REDES2 dns-server 192.168.2.217
