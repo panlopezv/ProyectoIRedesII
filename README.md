@@ -1,11 +1,11 @@
-# ProyectoIRedesII
-Documentacion de los servicios levantados para el proyecto del curso redes II
+#Proyecto II Redes II
+Documentacion de los servicios levantados para el proyecto del curso de Redes II.
 
 Universidad Rafael Landívar
 Campus Quetzaltenango
 Facultad de ingeniera
-Ingeniera en sistemas e Informática
-Redes 2
+Ingeniera en Informática y Sistemas
+Redes II
 Ing. Dhaby Xiloj.
 
 
@@ -134,7 +134,7 @@ Paso 8. Descargar herramientas visuales para mejor gestion de los directorios.
 			sudo apt-get install phpldapadmin
 		Ejecución
 			http://localhost/phpldapadmin/
-	PHP LDAP Admin
+	LAM
 		Instalación
 			sudo apt-get install ldap-account-manager
 		Ejecución
@@ -157,7 +157,7 @@ Paso 4. Luego se configura el usuario del administrador:
 
 	cn=admin,dc=redes2, dc=url
 	
-Paso 5. Se ingresa la contraseña del administrador:
+Paso 5. Se ingresa la contraseña del administrador.
 
 Paso 6. Luego de finalizar la configuracion del cliente debemos ir a la configuración de nsswitch.conf con:
 
