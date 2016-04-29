@@ -1,4 +1,4 @@
-#Proyecto II Redes II
+﻿#Proyecto II Redes II
 Documentacion de los servicios levantados para el proyecto del curso de Redes II.
 
 Universidad Rafael Landívar
@@ -11,7 +11,6 @@ Ing. Dhaby Xiloj.
 
 Proyecto No. 2
 Servicio de hosting y redundancia.
-
 
 - Miguel Orlando Diaz Muñoz 15227-12
 - Kevin Antonio Velásquez Aguilar 16736-11
