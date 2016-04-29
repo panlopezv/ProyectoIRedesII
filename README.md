@@ -737,6 +737,119 @@ Wordpress es un CMS(Sistema de Manejo de Contenido) donde se puede configurar bl
         
         Tras esto se vera la información de WordPress y se podra comenzar a montar su web o blog.
 
+##Sesiones Activas
+Se crean archivos .php en el servidor, se crean varios entre ellos:
+
+###Paso 1: 
+Crear el Archivo de coneccion al servidor de la base de datos este archivo esta dentro de una carpeta llamada class y se llama conexion.php
+		<?php
+		session_start();
+		abstract class Conexion {
+   		//*****************************************************************************
+   		public function conectar(){
+   	    $mysqli = new mysqli("192.168.2.98","pruebawp","aleXela","redes");
+      
+      	if ($mysqli->connect_errno)
+         header('Location: offline.html');
+
+      	$mysqli->set_charset('utf8');
+      
+     	return $mysqli;
+   		}
+		}
+		?>
+###Paso 2:
+Se crea una clase para la creacion de usuarios, con los metodos para agregar usuarios.
+		<?php
+
+		require_once 'conexion.php';
+		class Usuarios extends Conexion {
+
+    	public $mysqli;
+    	public $data;
+
+    	public function __construct() {
+        $this->mysqli = parent::conectar();
+        $this->data = array();
+    	}
+    	public function usuarios() {
+
+        $resultado = $this->mysqli->query("SELECT * FROM usuarios");
+
+        while ( $fila = $resultado->fetch_assoc() ) {
+            $this->data[] = $fila;
+        }
+        
+        return $this->data;
+    	}
+
+    	public function nuevousuario() {
+        parent::Conectar();
+        $nombre = $_POST['nombre'];
+        $nick = $_POST['usuario'];
+        $pass = $_POST["clave"];
+        // VALIDAMOS SI EXISTE EL NICK
+        $resultado = $this->mysqli->query("select nick from usuarios where nick = '$nick'"); 
+
+        $registros = $resultado->num_rows; 
+
+        if ($registros == 0) {
+            $resultado = $this->mysqli->query("INSERT INTO usuario(Nombre, nick, contrasenia) 
+                VALUES('$nombre', '$nick','$pass')"); 
+            	header("location: login.php");
+            }
+
+    	}
+		}
+###Paso 3:
+Se crea una funcion para agregar un id a la sesion del usuario que se ha va a logear con el comando "setcookie" se le da el nombre y el valor para guardar en las cookies la sesion
+
+		public function set($nombre, $valor, $idusuario) {
+     	$iddesesion = $valor."ohdfur4ih";
+     	var_dump ($iddesesion);
+     	setcookie("nombre", $nombre);
+     	setcookie("idsesion", $iddesesion);
+     	$conexion = new mysqli("192.168.2.98","pruebawp","aleXela","redes");
+     	$consulta = "UPDATE usuario SET idsesion = '$iddesesion' where idusuario = '$idusuario';";
+     	$result = $conexion->query($consulta);
+    
+     	if($result->num_rows > 0)
+     	{
+       	$fila = $result->fetch_assoc();
+       	if( strcmp($password,$fila["contrasenia"]) == 0 )
+        return true;            
+       	else          
+        return false;
+     	}
+     	else
+        return false;
+  		}
+De esta manera para mantener la sesiones abiertas, la base de datos contara con un campo dedicado al registro de las seciones, y cuando este con la sesion iniciada, sera en base a las cookis y al registro en la base de datos, que como anteriormente se menciona, este servicio esta en Alta disponibilidad, lo que garantiza las sesiones iniciadas.
+
+###Paso 4:
+Para verificar la sesion del usuario en la pagina principal se muestra el nombre del usuario con la sesion iniciada.
+		<HTML><head>
+		<title></title>
+		</head>
+		<body>
+		<h1>Hola:  <?php echo $_COOKIE["nombre"]; ?> </h1> <a href="cerrarsesion.php"> Cerrar Sesion </a>
+		<p> Aqui va el contenido de la pagina </p>
+		</body>
+		</HTML>
+###Paso 5:
+Como se trata de solamente una prueba, en el servidor de base de datos, se agrego la siguiente base de datos, con una sola tabla, de la siguiente manera:
+
+		CREATE TABLE `usertbl` (
+ 		`id` int(11) NOT NULL auto_increment,
+ 		`full_name` varchar(32) collate utf8_unicode_ci NOT NULL default '',
+ 		`username` varchar(20) collate utf8_unicode_ci NOT NULL default '',
+ 		`password` varchar(32) collate utf8_unicode_ci NOT NULL default '',
+ 		`idsesion` varchar(20) collate utf8_unicode_ci NOT NULL default '',
+ 		PRIMARY KEY (`id`),
+		UNIQUE KEY `username` (`username`)
+		)
+
+
 ###Configuración Pacemaker Cluster HA WEB
 Para la configuración de pacemaker se necesitan que este iniciado los servicios pacemaker y corosync, si están iniciados se procede a escribir los siguientes comandos, los comandos que se van a ejecutaren pacemaker son:
 
