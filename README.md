@@ -828,6 +828,7 @@ De esta manera para mantener la sesiones abiertas, la base de datos contara con 
 
 ###Paso 4:
 Para verificar la sesion del usuario en la pagina principal se muestra el nombre del usuario con la sesion iniciada.
+<!--
 		/<HTML><head>
 		/<title></title>
 		/</head>
@@ -836,6 +837,7 @@ Para verificar la sesion del usuario en la pagina principal se muestra el nombre
 		/<p> Aqui va el contenido de la pagina </p>
 		/</body>
 		/</HTML>
+-->
 ###Paso 5:
 Como se trata de solamente una prueba, en el servidor de base de datos, se agrego la siguiente base de datos, con una sola tabla, de la siguiente manera:
 
